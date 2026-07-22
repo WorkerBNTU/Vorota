@@ -1,6 +1,13 @@
 ﻿#!/bin/bash
 set -e
 
+# Volume media_data может быть от root с прошлого запуска — чиним и уходим с root.
+if [ "$(id -u)" = "0" ]; then
+  mkdir -p /app/media /app/staticfiles
+  chown -R vorota:vorota /app/media /app/staticfiles
+  exec gosu vorota "$0" "$@"
+fi
+
 BANNED_SECRETS="dev-insecure-change-me-in-production change-me-in-production your-secret-key-change-in-production dev-local-only-change-me"
 
 if [ "${DEBUG:-False}" = "False" ] || [ "${DEBUG}" = "0" ] || [ "${DEBUG}" = "false" ]; then
