@@ -365,6 +365,12 @@ class AdminLeadViewSet(viewsets.ModelViewSet):
     serializer_class = LeadSerializer
     http_method_names = ['get', 'patch', 'delete', 'head', 'options']
 
+    def get_permissions(self):
+        # Удаление заявок — только полный админ (сохраняем audit trail для менеджера)
+        if self.action == 'destroy':
+            return [IsContentAdmin()]
+        return super().get_permissions()
+
     def get_queryset(self):
         qs = Lead.objects.all()
         status_filter = self.request.query_params.get('status')

@@ -271,7 +271,14 @@ class LeadSerializer(serializers.ModelSerializer):
             'status', 'status_display',
             'internal_notes', 'created_at', 'updated_at',
         ]
-        read_only_fields = ['created_at', 'updated_at']
+        # CRM: менеджер меняет только статус и заметки (99-З: consent/PII read-only)
+        read_only_fields = [
+            'id', 'name', 'phone', 'message', 'source',
+            'city', 'interest', 'opening_width', 'opening_height',
+            'drive_type', 'drive_type_display',
+            'privacy_consent', 'privacy_consent_at',
+            'status_display', 'created_at', 'updated_at',
+        ]
 
 
 class CaptchaSerializer(serializers.Serializer):

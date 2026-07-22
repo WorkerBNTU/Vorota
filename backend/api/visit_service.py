@@ -53,14 +53,15 @@ BOT_UA_RE = re.compile(
 
 
 def get_client_ip(request):
+    """IP для аналитики: тот же trust model, что у RateLimitMiddleware."""
     if getattr(settings, 'TRUST_PROXY_HEADERS', False):
         real_ip = request.META.get('HTTP_X_REAL_IP', '').strip()
         if real_ip:
             return real_ip
-    forwarded = request.META.get('HTTP_X_FORWARDED_FOR', '').strip()
-    if forwarded:
-        return forwarded.split(',')[0].strip()
-    return request.META.get('REMOTE_ADDR', '')
+        forwarded = request.META.get('HTTP_X_FORWARDED_FOR', '').strip()
+        if forwarded:
+            return forwarded.split(',')[0].strip()
+    return request.META.get('REMOTE_ADDR', '') or ''
 
 
 def is_bot_request(request):

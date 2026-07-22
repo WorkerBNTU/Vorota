@@ -19,15 +19,15 @@ class OpenAPISchemaView(SpectacularAPIView):
 
 urlpatterns = [
     path('api/', include('api.urls')),
-    # OpenAPI schema всегда доступна (удобно для ревью / клиентов).
-    path('api/schema/', OpenAPISchemaView.as_view(), name='schema'),
     # На корне домена, а не под /api/ — так их ищут поисковые роботы.
     path('sitemap.xml', SitemapView.as_view(), name='sitemap'),
     path('robots.txt', RobotsView.as_view(), name='robots'),
 ]
 
+# Schema + Swagger/ReDoc: DEBUG или ENABLE_API_DOCS=True (не светим на проде по умолчанию)
 if settings.ENABLE_API_DOCS:
     urlpatterns += [
+        path('api/schema/', OpenAPISchemaView.as_view(), name='schema'),
         path('api/docs/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
         path('api/redoc/', SpectacularRedocView.as_view(url_name='schema'), name='redoc'),
     ]

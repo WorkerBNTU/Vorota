@@ -102,7 +102,7 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 LANGUAGE_CODE = 'ru-ru'
-TIME_ZONE = 'Europe/Moscow'
+TIME_ZONE = 'Europe/Minsk'
 USE_I18N = True
 USE_TZ = True
 
@@ -189,9 +189,19 @@ SECURE_CONTENT_TYPE_NOSNIFF = True
 X_FRAME_OPTIONS = 'DENY'
 
 if not DEBUG:
-    SECURE_SSL_REDIRECT = os.getenv('SECURE_SSL_REDIRECT', 'True').lower() in ('true', '1', 'yes')
+    # По умолчанию False: за nginx TLS терминирует внешний прокси, Django видит HTTP.
+    # Включайте True только если Django сам принимает HTTPS или корректно настроен
+    # SECURE_PROXY_SSL_HEADER (ниже при TRUST_PROXY_HEADERS).
+    SECURE_SSL_REDIRECT = os.getenv('SECURE_SSL_REDIRECT', 'False').lower() in ('true', '1', 'yes')
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
+    if TRUST_PROXY_HEADERS:
+        SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+    # HSTS только если снаружи реально HTTPS (секунды; 0 = выкл.)
+    SECURE_HSTS_SECONDS = int(os.getenv('SECURE_HSTS_SECONDS', '0'))
+    if SECURE_HSTS_SECONDS:
+        SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+        SECURE_HSTS_PRELOAD = os.getenv('SECURE_HSTS_PRELOAD', 'False').lower() in ('true', '1', 'yes')
 
 # Sentry — ошибки API (в т.ч. сбои Telegram при заявках). Пустой DSN = выключено.
 SENTRY_DSN = os.getenv('SENTRY_DSN', '').strip()
@@ -200,6 +210,25 @@ SENTRY_ENVIRONMENT = os.getenv(
     'development' if DEBUG else 'production',
 )
 SENTRY_TRACES_SAMPLE_RATE = float(os.getenv('SENTRY_TRACES_SAMPLE_RATE', '0.1'))
+
+
+def _sentry_before_send(event, hint):
+    """Убираем Telegram bot token из сообщений/исключений перед отправкой в Sentry."""
+    token = TELEGRAM_BOT_TOKEN
+    if not token:
+        return event
+
+    def scrub(value):
+        if isinstance(value, str) and token in value:
+            return value.replace(token, '***')
+        if isinstance(value, list):
+            return [scrub(v) for v in value]
+        if isinstance(value, dict):
+            return {k: scrub(v) for k, v in value.items()}
+        return value
+
+    return scrub(event)
+
 
 if SENTRY_DSN and os.environ.get('DJANGO_SETTINGS_MODULE') != 'config.settings_test':
     import sentry_sdk
@@ -211,4 +240,5 @@ if SENTRY_DSN and os.environ.get('DJANGO_SETTINGS_MODULE') != 'config.settings_t
         traces_sample_rate=SENTRY_TRACES_SAMPLE_RATE,
         send_default_pii=False,
         environment=SENTRY_ENVIRONMENT,
+        before_send=_sentry_before_send,
     )

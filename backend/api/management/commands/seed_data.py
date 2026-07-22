@@ -1,4 +1,4 @@
-from pathlib import Path
+﻿from pathlib import Path
 
 from django.core.management import call_command
 from django.core.management.base import BaseCommand
@@ -8,41 +8,72 @@ from api.models import Advantage, ContentSection, HeroSlide, Service, SiteSettin
 
 FIXTURE = Path(__file__).resolve().parents[2] / 'fixtures' / 'catalog_default.json'
 
+# Значения только для первого заполнения пустой БД (не затирают правки из админки).
+_SETTINGS_DEFAULTS = {
+    'company_name': 'ВоротаРБ',
+    'tagline': 'Продажа, монтаж и обслуживание ворот, роллет и автоматики по всей Беларуси',
+    'hero_title': 'Ворота и роллеты DoorHan — с замером и бесплатной доставкой',
+    'hero_subtitle': (
+        'Продажа, монтаж, наладка и обслуживание ворот и роллет всех видов. '
+        'Официальный дилер DoorHan с 2013 года.'
+    ),
+    'phone': '+375 (29) 888-06-88',
+    'email': 'vorotarb@mail.ru',
+    'address': '220099 г. Минск, ул. Брестская, 2, каб. 205',
+    'footer_description': (
+        'ООО «ВоротаРБ» — продажа, монтаж и обслуживание ворот, роллет, шлагбаумов '
+        'и гаражных дверей. Официальный дилер DoorHan.'
+    ),
+    'working_hours': 'Пн–Пт: 9:00–18:00',
+    'meta_title': 'Ворота и автоматика под ключ в Минске — ВоротаРБ',
+    'meta_description': (
+        'Продажа, монтаж и обслуживание ворот, роллет, шлагбаумов и гаражных дверей '
+        'в Минске и по всей Беларуси. Официальный дилер DoorHan.'
+    ),
+    'legal_entity_name': 'ООО «ВоротаРБ»',
+    'unp': '692057005',
+    'bank_account': 'BY61ALFA30122643750010270000',
+    'bank_name': 'ЗАО «АЛЬФА-Банк»',
+    'bank_address': 'г. Минск, ул. Мясникова, 70',
+    'bank_bic': 'ALFABY2X',
+}
+
 
 class Command(BaseCommand):
-    help = 'Заполняет базу начальными данными'
+    help = (
+        'Заполняет базу начальными данными. SiteSettings не перезаписываются, '
+        'если поля уже заполнены (безопасный повторный запуск из entrypoint). '
+        'Полный сброс настроек: --force-settings.'
+    )
+
+    def add_arguments(self, parser):
+        parser.add_argument(
+            '--force-settings',
+            action='store_true',
+            help='Перезаписать SiteSettings и legal-тексты дефолтами',
+        )
 
     def handle(self, *args, **options):
+        force = options['force_settings']
         settings = SiteSettings.load()
-        settings.company_name = 'ВоротаРБ'
-        settings.tagline = 'Продажа, монтаж и обслуживание ворот, роллет и автоматики по всей Беларуси'
-        settings.hero_title = 'Ворота и роллеты DoorHan — с замером и бесплатной доставкой'
-        settings.hero_subtitle = (
-            'Продажа, монтаж, наладка и обслуживание ворот и роллет всех видов. '
-            'Официальный дилер DoorHan с 2013 года.'
+        changed = []
+        for field, value in _SETTINGS_DEFAULTS.items():
+            current = getattr(settings, field, '') or ''
+            if force or not str(current).strip():
+                setattr(settings, field, value)
+                changed.append(field)
+        if changed:
+            settings.save(update_fields=changed)
+            self.stdout.write(f'Настройки сайта: заполнены поля {", ".join(changed)}')
+        else:
+            self.stdout.write('Настройки сайта уже заполнены — пропуск (без --force-settings)')
+
+        SiteSettings._ensure_legal_defaults(
+            SiteSettings.load(),
+            refresh_docs=force,
         )
-        settings.phone = '+375 (29) 888-06-88'
-        settings.email = 'vorotarb@mail.ru'
-        settings.address = '220099 г. Минск, ул. Брестская, 2, каб. 205'
-        settings.footer_description = (
-            'ООО «ВоротаРБ» — продажа, монтаж и обслуживание ворот, роллет, шлагбаумов '
-            'и гаражных дверей. Официальный дилер DoorHan.'
-        )
-        settings.working_hours = 'Пн–Пт: 9:00–18:00'
-        settings.meta_title = 'Ворота и автоматика под ключ в Минске — ВоротаРБ'
-        settings.meta_description = (
-            'Продажа, монтаж и обслуживание ворот, роллет, шлагбаумов и гаражных дверей '
-            'в Минске и по всей Беларуси. Официальный дилер DoorHan.'
-        )
-        settings.legal_entity_name = 'ООО «ВоротаРБ»'
-        settings.unp = '692057005'
-        settings.bank_account = 'BY61ALFA30122643750010270000'
-        settings.bank_name = 'ЗАО «АЛЬФА-Банк»'
-        settings.bank_address = 'г. Минск, ул. Мясникова, 70'
-        settings.bank_bic = 'ALFABY2X'
-        settings.save()
-        SiteSettings._ensure_legal_defaults(SiteSettings.load(), refresh_docs=True)
-        self.stdout.write('Настройки сайта обновлены')
+        if force:
+            self.stdout.write('Legal-тексты обновлены из шаблонов (--force-settings)')
 
         if not HeroSlide.objects.exists():
             self.stdout.write('Создайте слайды через админку или загрузите изображения')

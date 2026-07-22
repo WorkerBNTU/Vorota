@@ -3,7 +3,7 @@
 Приоритет iframe: embed map-widget → oid + координаты → поиск по адресу.
 Короткие ссылки yandex.ru/maps/-/XXXX не подходят — открывают геолокацию пользователя.
 """
-from urllib.parse import quote
+from urllib.parse import quote, urlparse
 
 # Vorota Rb, Брестская 2 — из https://yandex.ru/maps/org/vorota_rb/54736687390/
 DEFAULT_YANDEX_ORG_ID = '54736687390'
@@ -13,15 +13,29 @@ DEFAULT_LON = 27.527497
 # z=18 — уровень здания; ol=biz — карточка организации с меткой (не просто точка)
 DEFAULT_MAP_ZOOM = 18
 
-_EMBED_HOSTS = ('yandex.ru/map-widget/', 'yandex.com/map-widget/')
+_EMBED_HOSTS = frozenset({
+    'yandex.ru',
+    'www.yandex.ru',
+    'yandex.com',
+    'www.yandex.com',
+})
 
 
 def is_embeddable_map_url(url):
-    """True только для ссылок виджета map-widget — их можно вставлять в iframe."""
+    """True только для https map-widget на официальных хостах Яндекса."""
     if not url:
         return False
-    normalized = str(url).strip().lower()
-    return any(host in normalized for host in _EMBED_HOSTS)
+    try:
+        parsed = urlparse(str(url).strip())
+    except ValueError:
+        return False
+    if parsed.scheme not in ('https', 'http'):
+        return False
+    host = (parsed.hostname or '').lower()
+    if host not in _EMBED_HOSTS:
+        return False
+    path = parsed.path or ''
+    return '/map-widget/' in path
 
 
 def is_unreliable_map_share_url(url):

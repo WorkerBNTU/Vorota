@@ -1,5 +1,5 @@
 ﻿const API_BASE = import.meta.env.VITE_API_URL || '/api'
-const GET_CACHE_TTL = 5 * 60 * 1000
+const GET_CACHE_TTL = 60 * 1000
 
 type HttpMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE'
 

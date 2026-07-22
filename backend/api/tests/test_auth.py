@@ -116,3 +116,52 @@ class TestManagerPermissions:
         api_client.force_login(staff_user)
         response = api_client.get('/api/admin/settings/')
         assert response.status_code == 200
+
+    def test_manager_can_patch_status_not_pii(self, api_client, manager_user):
+        from api.models import Lead, LeadStatus
+
+        lead = Lead.objects.create(
+            name='Клиент',
+            phone='375291112233',
+            privacy_consent=True,
+            status=LeadStatus.NEW,
+        )
+        api_client.force_login(manager_user)
+        response = api_client.patch(
+            f'/api/admin/leads/{lead.id}/',
+            {
+                'status': LeadStatus.IN_PROGRESS,
+                'internal_notes': 'перезвонить',
+                'name': 'Хакер',
+                'phone': '375290000000',
+                'privacy_consent': False,
+                'source': 'hacked',
+            },
+            format='json',
+        )
+        assert response.status_code == 200
+        lead.refresh_from_db()
+        assert lead.status == LeadStatus.IN_PROGRESS
+        assert lead.internal_notes == 'перезвонить'
+        assert lead.name == 'Клиент'
+        assert lead.phone == '375291112233'
+        assert lead.privacy_consent is True
+        assert lead.source == 'сайт'
+
+    def test_manager_cannot_delete_lead(self, api_client, manager_user):
+        from api.models import Lead
+
+        lead = Lead.objects.create(name='Клиент', phone='375291112233')
+        api_client.force_login(manager_user)
+        response = api_client.delete(f'/api/admin/leads/{lead.id}/')
+        assert response.status_code == 403
+        assert Lead.objects.filter(pk=lead.id).exists()
+
+    def test_admin_can_delete_lead(self, api_client, staff_user):
+        from api.models import Lead
+
+        lead = Lead.objects.create(name='Клиент', phone='375291112233')
+        api_client.force_login(staff_user)
+        response = api_client.delete(f'/api/admin/leads/{lead.id}/')
+        assert response.status_code == 204
+        assert not Lead.objects.filter(pk=lead.id).exists()

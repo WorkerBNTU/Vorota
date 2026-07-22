@@ -115,14 +115,21 @@ def send_telegram_notification(lead_id):
         response.raise_for_status()
         return True
     except requests.RequestException as exc:
-        logger.error('Failed to send Telegram notification: %s', exc)
+        safe_exc = str(exc)
+        if token and token in safe_exc:
+            safe_exc = safe_exc.replace(token, '***')
+        logger.error('Failed to send Telegram notification: %s', safe_exc)
         try:
             import sentry_sdk
 
             with sentry_sdk.push_scope() as scope:
                 scope.set_tag('subsystem', 'telegram')
                 scope.set_context('lead', {'id': lead_id})
-                sentry_sdk.capture_exception(exc)
+                # Не передаём исходный exc с URL+token — только redacted message
+                sentry_sdk.capture_message(
+                    f'Telegram notification failed: {safe_exc}',
+                    level='error',
+                )
         except Exception:
             pass
         return False

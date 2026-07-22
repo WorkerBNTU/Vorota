@@ -175,7 +175,8 @@ Windows без Docker: скопируйте `backend/db.sqlite3` и папку `
 | 429 на формах | Redis доступен; не занижен ли `RATE_LIMIT_*`; не режут ли всех одним IP без `TRUST_PROXY_HEADERS` |
 | Пустые картинки на проде | volume `media_data`, права, nginx `/media/` |
 | Боты видят пустой SPA | давно ли гоняли `prerender`; есть ли файлы в `prerendered_data` |
-| Админка «не пускает» | пользователь `is_staff`, `create_admin`, не перепутан ли пароль из `.env` |
+| Админка «не пускает» | `create_admin` / `create_manager`, группы, не перепутан ли пароль из `.env` |
+| После рестарта Docker слетели тексты сайта | `seed_data` больше не затирает заполненные поля; для сброса — `seed_data --force-settings` |
 
 ## Observability (Sentry)
 

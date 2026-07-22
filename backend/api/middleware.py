@@ -62,6 +62,9 @@ class RateLimitMiddleware:
         return self.get_response(request)
 
     def _should_rate_limit(self, path):
+        # Админка: staff уже авторизован; лимит мешает массовому сохранению каталога
+        if path.startswith('/api/admin/'):
+            return False
         return any(path.startswith(prefix) for prefix in self.RATE_LIMITED_PREFIXES)
 
     def _rate_limit_scope(self, path):
