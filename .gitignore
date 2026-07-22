@@ -40,6 +40,8 @@ backups/
 # Frontend build
 frontend/dist/
 frontend/node_modules/.vite/
+frontend/test-results/
+frontend/playwright-report/
 
 # OS / editor
 .DS_Store

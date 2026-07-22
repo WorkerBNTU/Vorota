@@ -43,7 +43,15 @@ ruff check .
 pytest
 ```
 
-CI (GitHub Actions): на каждый push/PR — `ruff` + `pytest` и `npm run build`. См. `.github/workflows/ci.yml`.
+CI (GitHub Actions): на каждый push/PR — `ruff` + `pytest`, frontend `typecheck` + `build`, smoke E2E (Playwright). См. `.github/workflows/ci.yml`.
+
+Локально E2E (нужны Python deps в `backend/` и `npm install` во `frontend/`):
+
+```bash
+cd frontend
+npx playwright install chromium   # один раз
+npm run test:e2e
+```
 
 ## Docker (прод / staging)
 

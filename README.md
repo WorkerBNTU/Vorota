@@ -324,7 +324,7 @@ pre-commit install
 pre-commit run --all-files
 ```
 
-На каждый push/PR GitHub Actions гоняет backend lint+tests и `npm run build` фронтенда (`.github/workflows/ci.yml`).
+На каждый push/PR GitHub Actions гоняет backend lint+tests, `npm run typecheck` + `npm run build`, и smoke E2E (Playwright).
 
 ## Структура проекта
 

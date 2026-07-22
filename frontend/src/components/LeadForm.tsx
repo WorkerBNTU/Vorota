@@ -1,14 +1,21 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+﻿import { FormEvent, useEffect, useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { api, isCaptchaRequiredError } from '../api'
+import { api, ApiError, isCaptchaRequiredError, type CaptchaResponse, type LeadPayload } from '../api'
 import { useSiteData } from '../context/SiteDataContext'
 import { CaptchaLightbox, SuccessLightbox } from './FormLightbox'
 import PhoneInput from './PhoneInput'
 import { isNationalComplete, toE164 } from '../utils/phone'
 import './LeadForm.css'
 
+type PhoneCountry = 'by' | 'ru'
+
+type LeadInterest = {
+  value: string
+  needsOpening: boolean
+}
+
 /** Категории интереса: value + нужны ли размеры проёма / привод */
-export const LEAD_INTERESTS = [
+export const LEAD_INTERESTS: LeadInterest[] = [
   { value: 'Секционные ворота', needsOpening: true },
   { value: 'Откатные ворота', needsOpening: true },
   { value: 'Распашные ворота', needsOpening: true },
@@ -22,21 +29,29 @@ export const LEAD_INTERESTS = [
   { value: 'Другое', needsOpening: false },
 ]
 
-const DRIVE_OPTIONS = [
+const DRIVE_OPTIONS: { value: string; label: string }[] = [
   { value: '', label: 'Не указано' },
   { value: 'electric', label: 'С электроприводом' },
   { value: 'manual', label: 'Ручные' },
   { value: 'unknown', label: 'Пока не знаю' },
 ]
 
-function guessInterestFromSource(source = '') {
+export type LeadFormProps = {
+  source?: string
+  initialInterest?: string
+  onSuccess?: () => void
+  onLeadSent?: () => void
+  compact?: boolean
+}
+
+function guessInterestFromSource(source = ''): string {
   const text = String(source)
   // «товар: Секционные ворота DoorHan…» / «услуга: Ремонт ворот»
   const m = text.match(/^(?:товар|услуга|каталог):\s*(.+)$/i)
   return m ? m[1].trim().slice(0, 200) : ''
 }
 
-function interestNeedsOpening(interest) {
+function interestNeedsOpening(interest: string): boolean {
   if (!interest) return false
   const known = LEAD_INTERESTS.find((i) => i.value === interest)
   if (known) return known.needsOpening
@@ -50,7 +65,7 @@ export default function LeadForm({
   onSuccess,
   onLeadSent,
   compact = false,
-}) {
+}: LeadFormProps) {
   const guessed = useMemo(
     () => initialInterest || guessInterestFromSource(source),
     [initialInterest, source],
@@ -58,7 +73,7 @@ export default function LeadForm({
 
   const [form, setForm] = useState({ name: '', message: '', website: '' })
   const [phoneNational, setPhoneNational] = useState('')
-  const [phoneCountry, setPhoneCountry] = useState('by')
+  const [phoneCountry, setPhoneCountry] = useState<PhoneCountry>('by')
   const [detailsOpen, setDetailsOpen] = useState(Boolean(guessed))
   const [interest, setInterest] = useState(guessed)
   const [interestCustom, setInterestCustom] = useState(
@@ -68,16 +83,16 @@ export default function LeadForm({
   const [openingWidth, setOpeningWidth] = useState('')
   const [openingHeight, setOpeningHeight] = useState('')
   const [driveType, setDriveType] = useState('')
-  const [captcha, setCaptcha] = useState(null)
+  const [captcha, setCaptcha] = useState<CaptchaResponse | null>(null)
   const [captchaAnswer, setCaptchaAnswer] = useState('')
   const [captchaOpen, setCaptchaOpen] = useState(false)
-  const [captchaError, setCaptchaError] = useState(null)
+  const [captchaError, setCaptchaError] = useState<string | null>(null)
   const [successOpen, setSuccessOpen] = useState(false)
   const [privacyConsent, setPrivacyConsent] = useState(false)
   const [consentError, setConsentError] = useState(false)
-  const [status, setStatus] = useState(null)
+  const [status, setStatus] = useState<{ type: string; text: string } | null>(null)
   const [loading, setLoading] = useState(false)
-  const pendingPayloadRef = useRef(null)
+  const pendingPayloadRef = useRef<LeadPayload | null>(null)
   const submittingRef = useRef(false)
   const succeededRef = useRef(false)
 
@@ -135,8 +150,8 @@ export default function LeadForm({
     pendingPayloadRef.current = null
   }
 
-  const buildPayload = (captchaFields = null) => {
-    const payload = {
+  const buildPayload = (captchaFields: { captcha_id?: string; captcha_answer?: string } | null = null): LeadPayload => {
+    const payload: LeadPayload = {
       name: form.name,
       phone: toE164(phoneNational, phoneCountry),
       message: form.message,
@@ -160,7 +175,7 @@ export default function LeadForm({
     return payload
   }
 
-  const sendLead = async (payload) => {
+  const sendLead = async (payload: LeadPayload) => {
     if (submittingRef.current || succeededRef.current) return
     submittingRef.current = true
     setLoading(true)
@@ -175,7 +190,7 @@ export default function LeadForm({
         setSuccessOpen(true)
       }
       onSuccess?.()
-    } catch (err) {
+    } catch (err: unknown) {
       if (succeededRef.current) return
       if (isCaptchaRequiredError(err)) {
         pendingPayloadRef.current = {
@@ -189,7 +204,8 @@ export default function LeadForm({
             setCaptchaOpen(false)
             return
           }
-          const wrongAnswer = err.data && Object.prototype.hasOwnProperty.call(err.data, 'captcha_answer')
+          const data = err instanceof ApiError ? err.data : undefined
+          const wrongAnswer = data && Object.prototype.hasOwnProperty.call(data, 'captcha_answer')
           setCaptchaError(wrongAnswer ? 'Неверный ответ — попробуйте ещё раз' : null)
         } catch {
           if (!succeededRef.current) {
@@ -197,7 +213,8 @@ export default function LeadForm({
           }
         }
       } else {
-        setStatus({ type: 'error', text: err.message || 'Ошибка отправки' })
+        const message = err instanceof Error ? err.message : 'Ошибка отправки'
+        setStatus({ type: 'error', text: message || 'Ошибка отправки' })
         if (captchaOpen && !succeededRef.current) {
           loadCaptcha().catch(() => {})
         }
@@ -208,7 +225,7 @@ export default function LeadForm({
     }
   }
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     e.stopPropagation()
     succeededRef.current = false
@@ -279,7 +296,7 @@ export default function LeadForm({
           id={phoneId}
           nationalDigits={phoneNational}
           country={phoneCountry}
-          onChange={(national, country) => {
+          onChange={(national: string, country: PhoneCountry) => {
             setPhoneNational(national)
             setPhoneCountry(country)
           }}
