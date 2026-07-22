@@ -1,8 +1,11 @@
+import logging
 import time
 from collections import defaultdict
 from threading import Lock
 
 from django.conf import settings
+
+logger = logging.getLogger(__name__)
 
 
 class MemoryRateLimitStore:
@@ -35,6 +38,21 @@ class RedisRateLimitStore:
         return int(count) <= limit
 
 
+class FallbackRateLimitStore:
+    """Redis primary; при сбое Redis — in-memory (fail-open по доступности API)."""
+
+    def __init__(self, primary, fallback: MemoryRateLimitStore):
+        self.primary = primary
+        self.fallback = fallback
+
+    def is_allowed(self, key: str, limit: int, window: int) -> bool:
+        try:
+            return self.primary.is_allowed(key, limit, window)
+        except Exception:
+            logger.warning('Redis rate-limit unavailable, falling back to memory', exc_info=True)
+            return self.fallback.is_allowed(key, limit, window)
+
+
 _store = None
 
 
@@ -42,12 +60,13 @@ def get_rate_limit_store():
     global _store
     if _store is not None:
         return _store
+    memory = MemoryRateLimitStore()
     redis_url = getattr(settings, 'REDIS_URL', '')
     if redis_url:
         try:
-            _store = RedisRateLimitStore(redis_url)
+            _store = FallbackRateLimitStore(RedisRateLimitStore(redis_url), memory)
             return _store
         except Exception:
-            pass
-    _store = MemoryRateLimitStore()
+            logger.warning('Redis rate-limit init failed, using memory only', exc_info=True)
+    _store = memory
     return _store

@@ -14,6 +14,11 @@ if [[ -z "$SRC" || ! -d "$SRC" ]]; then
   exit 1
 fi
 
+# Абсолютный путь
+if [[ "$SRC" != /* ]]; then
+  SRC="$(cd "$SRC" && pwd)"
+fi
+
 cd "$ROOT"
 
 if docker compose ps --status running 2>/dev/null | grep -q backend; then
@@ -26,8 +31,10 @@ if docker compose ps --status running 2>/dev/null | grep -q backend; then
     echo "Нет $SRC/db.sql — пропускаю БД." >&2
   fi
   if [[ -f "$SRC/media.tar" ]]; then
-    echo "→ restore media в контейнер…"
-    docker compose exec -T backend sh -c 'rm -rf /app/media/* /app/media/.[!.]* 2>/dev/null; tar -C /app/media -xf -' < "$SRC/media.tar"
+    echo "→ restore media (safe extract)…"
+    docker compose cp "$SRC/media.tar" backend:/tmp/import-media.tar
+    docker compose exec -T backend python manage.py extract_media_tar /tmp/import-media.tar --replace
+    docker compose exec -T backend rm -f /tmp/import-media.tar
   fi
   echo "→ migrate (на случай расхождения схемы)…"
   docker compose exec backend python manage.py migrate --noinput
@@ -40,9 +47,8 @@ else
     exit 1
   fi
   if [[ -f "$SRC/media.tar" ]]; then
-    echo "→ распаковываю media…"
-    mkdir -p "$ROOT/backend/media"
-    tar -C "$ROOT/backend/media" -xf "$SRC/media.tar"
+    echo "→ распаковываю media (safe extract)…"
+    (cd "$ROOT/backend" && python manage.py extract_media_tar "$SRC/media.tar" --replace)
   fi
 fi
 

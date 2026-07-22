@@ -40,8 +40,8 @@
       SITE_URL: ${SITE_URL:-https://vorota-rb.by}
       # Публичный домен обязателен на проде (см. .env.example / runbook).
       ALLOWED_HOSTS: ${ALLOWED_HOSTS:-localhost,127.0.0.1,backend,frontend,vorota-rb.by,www.vorota-rb.by}
-      CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-https://vorota-rb.by,http://localhost}
-      CSRF_TRUSTED_ORIGINS: ${CSRF_TRUSTED_ORIGINS:-https://vorota-rb.by,https://www.vorota-rb.by,http://localhost}
+      CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:?Set CORS_ALLOWED_ORIGINS in .env}
+      CSRF_TRUSTED_ORIGINS: ${CSRF_TRUSTED_ORIGINS:?Set CSRF_TRUSTED_ORIGINS in .env}
       TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN:-}
       TELEGRAM_CHAT_ID: ${TELEGRAM_CHAT_ID:-}
       ADMIN_USERNAME: ${ADMIN_USERNAME:-admin}
@@ -76,6 +76,8 @@
     ports:
       - "80:80"
     volumes:
+      # Общий volume с backend: nginx отдаёт /media/ напрямую (см. nginx.conf).
+      - media_data:/var/media:ro
       - prerendered_data:/usr/share/nginx/html/_prerendered
     depends_on:
       - backend

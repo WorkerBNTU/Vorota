@@ -1,7 +1,7 @@
-#!/bin/bash
+﻿#!/bin/bash
 set -e
 
-BANNED_SECRETS="dev-insecure-change-me-in-production change-me-in-production your-secret-key-change-in-production"
+BANNED_SECRETS="dev-insecure-change-me-in-production change-me-in-production your-secret-key-change-in-production dev-local-only-change-me"
 
 if [ "${DEBUG:-False}" = "False" ] || [ "${DEBUG}" = "0" ] || [ "${DEBUG}" = "false" ]; then
   if [ -z "${ADMIN_PASSWORD}" ]; then

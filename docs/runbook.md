@@ -178,8 +178,8 @@ Windows без Docker: `python manage.py export_site_content` / `import_site_con
 - [ ] Скопировать `.env.example` → `.env`, задать `DJANGO_SECRET_KEY` (не из примера), `ADMIN_PASSWORD`, `DEBUG=False`
 - [ ] `SITE_URL=https://vorota-rb.by`
 - [ ] `ALLOWED_HOSTS` включает публичный домен (+ `www` при необходимости) и `frontend` для prerender
-- [ ] `CSRF_TRUSTED_ORIGINS` / `CORS_ALLOWED_ORIGINS` = `https://vorota-rb.by` (и www)
-- [ ] Внешний TLS-прокси шлёт на nginx `X-Forwarded-Proto: https` (не затирать в `http`)
+- [ ] `CSRF_TRUSTED_ORIGINS` / `CORS_ALLOWED_ORIGINS` = `https://vorota-rb.by` (и www) — **обязательны** в `.env` (compose без дефолта)
+- [ ] Внешний TLS-прокси шлёт на nginx `X-Forwarded-Proto: https` (nginx пробрасывает дальше в Django)
 - [ ] Сменить `DB_PASSWORD` (не оставлять `vorota`)
 - [ ] `TELEGRAM_*`, `REDIS_URL` (в compose уже), `TRUST_PROXY_HEADERS=True`
 - [ ] `SENTRY_DSN` (backend) и при необходимости `VITE_SENTRY_DSN` (build-arg frontend)

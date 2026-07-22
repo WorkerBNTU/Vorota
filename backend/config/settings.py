@@ -13,6 +13,7 @@ _BANNED_SECRETS = frozenset({
     _INSECURE_SECRET,
     'change-me-in-production',
     'your-secret-key-change-in-production',
+    'dev-local-only-change-me',
     '',
 })
 SECRET_KEY = os.getenv('DJANGO_SECRET_KEY', _INSECURE_SECRET)
