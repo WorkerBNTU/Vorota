@@ -1,4 +1,4 @@
-from django.conf import settings
+﻿from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import include, path
@@ -6,10 +6,21 @@ from drf_spectacular.views import SpectacularAPIView, SpectacularRedocView, Spec
 
 from api.views import RobotsView, SitemapView
 
+
+class OpenAPISchemaView(SpectacularAPIView):
+    """Схема с предсказуемым именем файла (иначе браузер качает без .yaml)."""
+
+    def finalize_response(self, request, response, *args, **kwargs):
+        response = super().finalize_response(request, response, *args, **kwargs)
+        ext = 'json' if 'json' in (response.accepted_media_type or '') else 'yaml'
+        response['Content-Disposition'] = f'inline; filename="openapi.{ext}"'
+        return response
+
+
 urlpatterns = [
     path('api/', include('api.urls')),
     # OpenAPI schema всегда доступна (удобно для ревью / клиентов).
-    path('api/schema/', SpectacularAPIView.as_view(), name='schema'),
+    path('api/schema/', OpenAPISchemaView.as_view(), name='schema'),
     # На корне домена, а не под /api/ — так их ищут поисковые роботы.
     path('sitemap.xml', SitemapView.as_view(), name='sitemap'),
     path('robots.txt', RobotsView.as_view(), name='robots'),

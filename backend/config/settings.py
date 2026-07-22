@@ -162,7 +162,8 @@ REST_FRAMEWORK = {
 }
 
 SPECTACULAR_SETTINGS = {
-    'TITLE': 'ВоротаРБ API',
+    # ASCII title → нормальный Content-Disposition filename (openapi schema).
+    'TITLE': 'VorotaRB API',
     'DESCRIPTION': (
         'Публичный контент, заявки и session-админка. '
         'Эндпоинты `/api/admin/*` требуют cookie сессии и `is_staff`.'

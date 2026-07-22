@@ -1,4 +1,4 @@
-import re
+﻿import re
 
 from django.conf import settings
 from django.http import JsonResponse
@@ -16,17 +16,22 @@ class SecurityHeadersMiddleware:
         response['X-Frame-Options'] = 'DENY'
         response['Referrer-Policy'] = 'strict-origin-when-cross-origin'
         response['Permissions-Policy'] = 'geolocation=(), microphone=(), camera=()'
+        # Swagger/ReDoc тянут UI с jsDelivr — без CDN в CSP страница /api/docs/ пустая.
+        docs_cdn = ''
+        if request.path.startswith(('/api/docs', '/api/redoc')):
+            docs_cdn = ' https://cdn.jsdelivr.net'
         csp = (
             "default-src 'self'; "
             "img-src 'self' data: blob: https:; "
-            "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; "
+            f"style-src 'self' 'unsafe-inline' https://fonts.googleapis.com{docs_cdn}; "
             "font-src 'self' https://fonts.gstatic.com; "
             # mc.yandex.ru / googletagmanager.com — опциональные Яндекс.Метрика
             # и Google Analytics (см. SiteSettings.yandex_metrika_id /
             # google_analytics_id, frontend/src/components/Analytics.jsx).
             # Разрешены всегда — сами счётчики подключаются только если в
             # админке заполнен соответствующий ID.
-            "script-src 'self' 'unsafe-inline' https://mc.yandex.ru https://www.googletagmanager.com; "
+            f"script-src 'self' 'unsafe-inline' https://mc.yandex.ru "
+            f"https://www.googletagmanager.com{docs_cdn}; "
             "connect-src 'self' https://mc.yandex.ru https://www.google-analytics.com "
             "https://*.google-analytics.com https://www.googletagmanager.com; "
             "frame-ancestors 'none';"
