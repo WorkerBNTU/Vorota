@@ -83,12 +83,15 @@ TEMPLATES = [
 WSGI_APPLICATION = 'config.wsgi.application'
 
 if os.getenv('DB_ENGINE') == 'postgresql':
+    _db_password = os.getenv('DB_PASSWORD', '')
+    if not DEBUG and not _db_password:
+        raise ImproperlyConfigured('DB_PASSWORD must be set when using PostgreSQL with DEBUG=False.')
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.postgresql',
             'NAME': os.getenv('DB_NAME', 'vorota'),
             'USER': os.getenv('DB_USER', 'vorota'),
-            'PASSWORD': os.getenv('DB_PASSWORD', 'vorota'),
+            'PASSWORD': _db_password or 'vorota',  # только для локального DEBUG
             'HOST': os.getenv('DB_HOST', 'db'),
             'PORT': os.getenv('DB_PORT', '5432'),
         }

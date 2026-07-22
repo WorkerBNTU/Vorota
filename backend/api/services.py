@@ -92,10 +92,17 @@ def send_telegram_notification(lead_id):
     def esc(value):
         return html.escape(str(value or ''), quote=False)
 
+    # Минимизация PII в Telegram: телефон маскируем (полный номер — только в CRM)
+    phone = str(lead.phone or '')
+    if len(phone) > 4:
+        phone_masked = f'***{phone[-4:]}'
+    else:
+        phone_masked = '***'
+
     text = (
         f'🔔 <b>Новая заявка с сайта</b>\n\n'
         f'👤 <b>Имя:</b> {esc(lead.name)}\n'
-        f'📞 <b>Телефон:</b> {esc(lead.phone)}\n'
+        f'📞 <b>Телефон:</b> {esc(phone_masked)}\n'
         f'💬 <b>Сообщение:</b> {esc(lead.message) or "—"}\n'
     )
     details = lead.details_summary()

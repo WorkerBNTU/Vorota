@@ -4,7 +4,8 @@
     environment:
       POSTGRES_DB: ${DB_NAME:-vorota}
       POSTGRES_USER: ${DB_USER:-vorota}
-      POSTGRES_PASSWORD: ${DB_PASSWORD:-vorota}
+      # Без дефолта: задайте DB_PASSWORD в .env (слабый vorota больше не подставляется)
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?Set DB_PASSWORD in .env}
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
@@ -31,7 +32,7 @@
       DB_ENGINE: postgresql
       DB_NAME: ${DB_NAME:-vorota}
       DB_USER: ${DB_USER:-vorota}
-      DB_PASSWORD: ${DB_PASSWORD:-vorota}
+      DB_PASSWORD: ${DB_PASSWORD:?Set DB_PASSWORD in .env}
       DB_HOST: db
       DB_PORT: 5432
       REDIS_URL: redis://redis:6379/0
