@@ -34,6 +34,9 @@ backend/staticfiles/
 # Локальный архив исходников для миграции (не используется сайтом в runtime)
 images/
 
+# Выгрузки БД+media (scripts/export_content.sh)
+backups/
+
 # Frontend build
 frontend/dist/
 frontend/node_modules/.vite/

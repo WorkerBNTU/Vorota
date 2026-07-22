@@ -23,6 +23,8 @@
 
 Опционально: сервис `prerender` (Puppeteer) пишет HTML-снапшоты для поисковых ботов; nginx отдаёт их по User-Agent.
 
+OpenAPI: `/api/schema/` всегда; Swagger UI `/api/docs/` в DEBUG или при `ENABLE_API_DOCS=True`.
+
 ## Потоки данных
 
 ### Публичный контент

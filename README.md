@@ -1,7 +1,60 @@
-﻿# ВоротаРБ — сайт-визитка с админкой
+﻿# ВоротаРБ — сайт-визитка с CRM-админкой
 
-Современный сайт для компании по продаже, монтажу и обслуживанию ворот, роллет, шлагбаумов и гаражных дверей (ООО «ВоротаРБ», Беларусь).
-**Стек:** React (Vite) + Django + Django REST Framework + PostgreSQL/SQLite
+[![CI](https://github.com/WorkerBNTU/Vorota/actions/workflows/ci.yml/badge.svg)](https://github.com/WorkerBNTU/Vorota/actions/workflows/ci.yml)
+
+Лендинг + каталог + заявки для компании по воротам, роллетам и шлагбаумам (ООО «ВоротаРБ», Беларусь).
+
+**Live:** https://vorota-rb.by *(после деплоя)* · **Репозиторий:** [WorkerBNTU/Vorota](https://github.com/WorkerBNTU/Vorota)
+
+| Слой | Технологии |
+|------|------------|
+| Frontend | React 18, Vite, SPA + Puppeteer prerender для ботов |
+| Backend | Django 5, Django REST Framework, session-auth админка |
+| Data | PostgreSQL (prod) / SQLite (dev), Redis (rate-limit), media volume |
+| Ops | Docker Compose, nginx, GitHub Actions CI, OpenAPI (`drf-spectacular`) |
+
+<p align="center">
+  <img src="docs/screenshots/home.jpg" alt="Главная ВоротаРБ" width="720" />
+</p>
+<p align="center">
+  <img src="docs/screenshots/admin.png" alt="Админка ВоротаРБ" width="720" />
+</p>
+
+## Быстрый старт (клон с GitHub)
+
+```bash
+git clone https://github.com/WorkerBNTU/Vorota.git
+cd Vorota
+cp .env.example .env
+
+cd backend
+python -m venv venv
+# Windows: venv\Scripts\activate
+source venv/bin/activate
+pip install -r requirements-dev.txt
+pre-commit install
+python manage.py migrate
+python manage.py seed_data
+python manage.py create_admin --username admin --password admin
+python manage.py runserver
+```
+
+В другом терминале:
+
+```bash
+cd frontend && npm install && npm run dev
+```
+
+| | URL |
+|--|-----|
+| Сайт | http://127.0.0.1:5173 |
+| Админка | http://127.0.0.1:5173/admin (`admin` / `admin`) |
+| API schema | http://127.0.0.1:8000/api/schema/ |
+| Swagger | http://127.0.0.1:8000/api/docs/ |
+
+Картинки в `seed_data` без вашего `media/` будут заглушками — для полного вида импортируйте media (см. [runbook](docs/runbook.md#staging--prod-наполнение-разраба)) или загрузите через админку.
+
+---
 
 ## Возможности
 
@@ -52,32 +105,11 @@
 - [ ] **Google Search Console** (search.google.com/search-console): добавить сайт, подтвердить права, отправить `sitemap.xml`.
 - [ ] Вписать ID Яндекс.Метрики и Google Analytics в админке («Настройки сайта» → «Аналитика»), если ещё не сделано.
 - [ ] Настроить HTTPS (см. раздел «HTTPS на проде» ниже).
+- Полный чеклист первого деплоя (env → migrate → media → admin → prerender): [docs/runbook.md](docs/runbook.md#чеклист-первого-деплоя).
 
 ---
 
-## Быстрый старт (локально)
-
-### 1. Backend
-
-```bash
-cd backend
-python -m venv venv
-
-# Windows
-venv\Scripts\activate
-
-# Linux/macOS
-source venv/bin/activate
-
-pip install -r requirements.txt
-cp ../.env.example ../.env
-python manage.py migrate
-python manage.py seed_data   # настройки, каталог (63 стр.), услуги, преимущества
-python manage.py create_admin --username admin
-# Пароль будет сгенерирован и выведен в консоль (dev)
-# Или задайте явно: --password ваш_пароль
-python manage.py runserver
-```
+## Backend подробнее
 
 Каталог (разделы/страницы) грузится из `backend/api/fixtures/catalog_default.json`
 только один раз, при пустой базе — это защищает правки, сделанные через
@@ -89,19 +121,7 @@ python manage.py runserver
 python manage.py update_catalog
 ```
 
-Backend: http://localhost:8000
-
-### 2. Frontend
-
-```bash
-cd frontend
-npm install
-npm run dev
-```
-
-Сайт: http://localhost:5173
-Админка: http://localhost:5173/admin
-Логин: `admin`, пароль — из вывода `create_admin` (dev) или заданный вами
+Backend API: http://127.0.0.1:8000
 
 ---
 
@@ -280,9 +300,11 @@ TELEGRAM_CHAT_ID=-1001234567890
 
 ## Документация
 
+- [Contributing](CONTRIBUTING.md) — ветки, pre-commit, media, PR
 - [Архитектура](docs/ARCHITECTURE.md) — компоненты, поток заявки, trade-offs
-- [Runbook](docs/runbook.md) — старт, деплой, бэкапы, инциденты
+- [Runbook](docs/runbook.md) — старт, деплой, бэкапы, staging→prod, инциденты
 - [`.env.example`](.env.example) — все переменные окружения
+- OpenAPI: `/api/schema/`, Swagger UI: `/api/docs/` (в DEBUG)
 
 ## Тесты и CI
 
@@ -307,7 +329,7 @@ pre-commit run --all-files
 ## Структура проекта
 
 ```
-Ворота/
+Vorota/
 ├── backend/          # Django + DRF API
 │   ├── api/          # Модели, views, serializers, tests/
 │   │   └── fixtures/ # Начальный контент каталога (catalog_default.json)
@@ -317,7 +339,8 @@ pre-commit run --all-files
 │   │   ├── pages/    # Публичные страницы
 │   │   └── admin/    # Админ-панель
 │   └── prerender/    # Puppeteer-скрипт генерации HTML-снапшотов для ботов
-├── docs/             # ARCHITECTURE.md, runbook.md
+├── docs/             # ARCHITECTURE.md, runbook.md, screenshots/
+├── scripts/          # export/import content (БД + media)
 ├── .github/workflows # CI
 ├── docker-compose.yml
 └── .env.example
@@ -339,7 +362,11 @@ pre-commit run --all-files
 | POST | `/api/auth/login/` | Вход в админку (session cookie) |
 | POST | `/api/auth/logout/` | Выход |
 | GET | `/api/auth/me/` | Проверка сессии |
+| GET | `/api/schema/` | OpenAPI schema |
+| GET | `/api/docs/` | Swagger UI (DEBUG / `ENABLE_API_DOCS`) |
 | * | `/api/admin/*` | CRUD (требует session + is_staff) |
+
+Полная схема генерируется автоматически: http://127.0.0.1:8000/api/docs/
 
 ---
 
@@ -357,6 +384,7 @@ pre-commit run --all-files
 | `REDIS_URL` | Redis для rate-limit (в Docker: `redis://redis:6379/0`) |
 | `TRUST_PROXY_HEADERS` | Доверять `X-Real-IP` от nginx (`True` в prod) |
 | `ENABLE_DJANGO_ADMIN` | Включить `/django-admin/` (по умолчанию `False`) |
+| `ENABLE_API_DOCS` | Swagger/ReDoc на проде (по умолчанию `False`; в DEBUG всегда) |
 | `RATE_LIMIT_REQUESTS` | Лимит POST-запросов с IP (по умолчанию 5) |
 | `RATE_LIMIT_WINDOW` | Окно лимита в секундах (60) |
 

@@ -34,6 +34,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'corsheaders',
     'rest_framework',
+    'drf_spectacular',
     'api',
 ]
 
@@ -157,7 +158,21 @@ REST_FRAMEWORK = {
     ),
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
     'PAGE_SIZE': 50,
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
 }
+
+SPECTACULAR_SETTINGS = {
+    'TITLE': 'ВоротаРБ API',
+    'DESCRIPTION': (
+        'Публичный контент, заявки и session-админка. '
+        'Эндпоинты `/api/admin/*` требуют cookie сессии и `is_staff`.'
+    ),
+    'VERSION': '1.0.0',
+    'SERVE_INCLUDE_SCHEMA': False,
+}
+
+# Swagger UI / ReDoc: в DEBUG всегда; на проде — только с ENABLE_API_DOCS=True
+ENABLE_API_DOCS = DEBUG or os.getenv('ENABLE_API_DOCS', 'False').lower() in ('true', '1', 'yes')
 
 TELEGRAM_BOT_TOKEN = os.getenv('TELEGRAM_BOT_TOKEN', '')
 TELEGRAM_CHAT_ID = os.getenv('TELEGRAM_CHAT_ID', '')
