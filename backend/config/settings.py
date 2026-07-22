@@ -9,10 +9,17 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 load_dotenv(BASE_DIR.parent / '.env')
 
 _INSECURE_SECRET = 'dev-insecure-change-me-in-production'
+_BANNED_SECRETS = frozenset({
+    _INSECURE_SECRET,
+    'change-me-in-production',
+    'your-secret-key-change-in-production',
+    '',
+})
 SECRET_KEY = os.getenv('DJANGO_SECRET_KEY', _INSECURE_SECRET)
-DEBUG = os.getenv('DEBUG', 'True').lower() in ('true', '1', 'yes')
+# Default False: без явного DEBUG=True в .env не поднимете «прод» с трассировками.
+DEBUG = os.getenv('DEBUG', 'False').lower() in ('true', '1', 'yes')
 
-if not DEBUG and SECRET_KEY in (_INSECURE_SECRET, 'change-me-in-production'):
+if not DEBUG and SECRET_KEY in _BANNED_SECRETS:
     raise ImproperlyConfigured(
         'DJANGO_SECRET_KEY must be set to a unique value when DEBUG=False.'
     )
@@ -122,7 +129,9 @@ _DEV_ORIGINS = (
 
 
 def _origins_from_env(name):
-    raw = os.getenv(name, ','.join(_DEV_ORIGINS))
+    raw = os.getenv(name)
+    if raw is None:
+        return list(_DEV_ORIGINS) if DEBUG else []
     return [o.strip() for o in raw.split(',') if o.strip()]
 
 
@@ -141,6 +150,11 @@ CSRF_TRUSTED_ORIGINS = _merge_origins(_origins_from_env('CSRF_TRUSTED_ORIGINS'))
 if DEBUG:
     CORS_ALLOWED_ORIGINS = _merge_origins(CORS_ALLOWED_ORIGINS, _DEV_ORIGINS)
     CSRF_TRUSTED_ORIGINS = _merge_origins(CSRF_TRUSTED_ORIGINS, _DEV_ORIGINS)
+elif not CSRF_TRUSTED_ORIGINS:
+    raise ImproperlyConfigured(
+        'CSRF_TRUSTED_ORIGINS must be set when DEBUG=False '
+        '(например https://vorota-rb.by).'
+    )
 
 CORS_ALLOW_CREDENTIALS = True
 
@@ -154,7 +168,7 @@ REST_FRAMEWORK = {
         'rest_framework.authentication.SessionAuthentication',
     ),
     'DEFAULT_PERMISSION_CLASSES': (
-        'rest_framework.permissions.AllowAny',
+        'rest_framework.permissions.IsAuthenticated',
     ),
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
     'PAGE_SIZE': 50,

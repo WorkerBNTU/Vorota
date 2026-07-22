@@ -9,6 +9,7 @@ logger = logging.getLogger(__name__)
 
 LEAD_SUBMISSIONS_SESSION_KEY = 'lead_submissions'
 # Сколько успешных заявок в сессии можно отправить без капчи обычному браузеру.
+# Подозрительный UA / боты — капча сразу (см. captcha_required).
 FREE_LEAD_SUBMISSIONS = 1
 
 _BOT_UA_MARKERS = (
@@ -74,6 +75,7 @@ def mark_lead_submitted(session):
 
 def send_telegram_notification(lead_id):
     from .models import Lead
+    import html
 
     try:
         lead = Lead.objects.get(pk=lead_id)
@@ -87,19 +89,21 @@ def send_telegram_notification(lead_id):
         logger.warning('Telegram credentials not configured, skipping notification')
         return False
 
+    def esc(value):
+        return html.escape(str(value or ''), quote=False)
+
     text = (
         f'🔔 <b>Новая заявка с сайта</b>\n\n'
-        f'👤 <b>Имя:</b> {lead.name}\n'
-        f'📞 <b>Телефон:</b> {lead.phone}\n'
-        f'💬 <b>Сообщение:</b> {lead.message or "—"}\n'
+        f'👤 <b>Имя:</b> {esc(lead.name)}\n'
+        f'📞 <b>Телефон:</b> {esc(lead.phone)}\n'
+        f'💬 <b>Сообщение:</b> {esc(lead.message) or "—"}\n'
     )
     details = lead.details_summary()
     if details:
-        safe = details.replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;')
-        text += f'📐 <b>Параметры:</b>\n{safe}\n'
+        text += f'📐 <b>Параметры:</b>\n{esc(details)}\n'
     text += (
-        f'📅 <b>Дата:</b> {lead.created_at.strftime("%d.%m.%Y %H:%M")}\n'
-        f'📋 <b>Источник:</b> {lead.source or "сайт"}'
+        f'📅 <b>Дата:</b> {esc(lead.created_at.strftime("%d.%m.%Y %H:%M"))}\n'
+        f'📋 <b>Источник:</b> {esc(lead.source or "сайт")}'
     )
 
     try:

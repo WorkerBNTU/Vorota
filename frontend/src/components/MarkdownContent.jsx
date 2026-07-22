@@ -6,6 +6,19 @@ function renderInline(text) {
   const parts = []
   let remaining = text
   let key = 0
+
+  const safeHref = (raw) => {
+    const href = String(raw || '').trim()
+    if (!href) return null
+    // Только http(s) или относительные пути сайта — не javascript:/data:/vbscript:
+    if (/^https?:\/\//i.test(href)) return href
+    if (href.startsWith('/') && !href.startsWith('//')) return href
+    if (/^[a-zA-Z0-9][\w./?&=#%+-]*$/.test(href) && !/^[a-zA-Z][a-zA-Z0-9+.-]*:/.test(href)) {
+      return href.startsWith('/') ? href : `/catalog/${href}`
+    }
+    return null
+  }
+
   while (remaining) {
     const bold = remaining.match(/\*\*(.+?)\*\*/)
     const link = remaining.match(/\[([^\]]+)\]\(([^)]+)\)/)
@@ -24,13 +37,16 @@ function renderInline(text) {
       parts.push(<strong key={key++}>{match[1]}</strong>)
       remaining = remaining.slice(match.index + match[0].length)
     } else {
-      const href = match[2]
-      const isExternal = href.startsWith('http')
-      parts.push(
-        isExternal
-          ? <a key={key++} href={href} target="_blank" rel="noopener noreferrer">{match[1]}</a>
-          : <Link key={key++} to={href.startsWith('/') ? href : `/catalog/${href}`}>{match[1]}</Link>
-      )
+      const href = safeHref(match[2])
+      if (!href) {
+        parts.push(match[1])
+      } else if (/^https?:\/\//i.test(href)) {
+        parts.push(
+          <a key={key++} href={href} target="_blank" rel="noopener noreferrer">{match[1]}</a>,
+        )
+      } else {
+        parts.push(<Link key={key++} to={href}>{match[1]}</Link>)
+      }
       remaining = remaining.slice(match.index + match[0].length)
     }
   }

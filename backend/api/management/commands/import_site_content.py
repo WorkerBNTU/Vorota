@@ -1,7 +1,6 @@
 ﻿"""Импорт контента с сохранением Lead / SiteVisit / пользователей."""
 
 import shutil
-import tarfile
 import tempfile
 from pathlib import Path
 
@@ -11,7 +10,11 @@ from django.core.management.base import BaseCommand, CommandError
 from django.db import transaction
 
 from api import models as api_models
-from api.content_transfer import CONTENT_MODEL_CLEAR_ORDER
+from api.content_transfer import (
+    CONTENT_MODEL_CLEAR_ORDER,
+    safe_extract_tar,
+    validate_content_fixture,
+)
 
 
 class Command(BaseCommand):
@@ -36,12 +39,18 @@ class Command(BaseCommand):
         if not fixture.is_file():
             raise CommandError(f'Нет файла {fixture}')
 
-        lead_count_before = api_models.Lead.objects.count()
-        visit_count_before = api_models.SiteVisit.objects.count()
+        self.stdout.write('→ проверка content.json (только контент-модели)…')
+        validate_content_fixture(fixture)
+
+        lead_fp_before = list(
+            api_models.Lead.objects.order_by('id').values_list('id', 'phone', 'updated_at')
+        )
+        visit_fp_before = list(
+            api_models.SiteVisit.objects.order_by('id').values_list('id', 'ip_address', 'visit_date')
+        )
 
         self.stdout.write('→ очистка контент-моделей (Lead/SiteVisit не трогаем)…')
         with transaction.atomic():
-            # Снять self-FK у страниц, иначе CASCADE/порядок на SQLite может мешать.
             api_models.ContentPage.objects.all().update(parent=None)
             for name in CONTENT_MODEL_CLEAR_ORDER:
                 model = getattr(api_models, name)
@@ -61,9 +70,7 @@ class Command(BaseCommand):
                 media_root.mkdir(parents=True, exist_ok=True)
                 with tempfile.TemporaryDirectory() as tmp:
                     tmp_path = Path(tmp)
-                    with tarfile.open(media_tar, 'r') as tar:
-                        tar.extractall(tmp_path)
-                    # Полная замена содержимого MEDIA_ROOT под снимок контента
+                    safe_extract_tar(media_tar, tmp_path)
                     for child in media_root.iterdir():
                         if child.is_dir():
                             shutil.rmtree(child)
@@ -76,19 +83,26 @@ class Command(BaseCommand):
                         else:
                             shutil.copy2(item, dest)
 
-        lead_count_after = api_models.Lead.objects.count()
-        visit_count_after = api_models.SiteVisit.objects.count()
-        if lead_count_after != lead_count_before:
+        lead_fp_after = list(
+            api_models.Lead.objects.order_by('id').values_list('id', 'phone', 'updated_at')
+        )
+        visit_fp_after = list(
+            api_models.SiteVisit.objects.order_by('id').values_list('id', 'ip_address', 'visit_date')
+        )
+        if lead_fp_after != lead_fp_before:
             raise CommandError(
-                f'Ошибка: число заявок изменилось {lead_count_before} → {lead_count_after}'
+                'Ошибка: набор заявок изменился после импорта '
+                '(ожидались те же id/phone/updated_at). '
+                'Возможна подмена content.json — откатите из бэкапа.'
             )
-        if visit_count_after != visit_count_before:
+        if visit_fp_after != visit_fp_before:
             raise CommandError(
-                f'Ошибка: число визитов изменилось {visit_count_before} → {visit_count_after}'
+                'Ошибка: набор визитов изменился после импорта. '
+                'Откатите из бэкапа.'
             )
 
         self.stdout.write(self.style.SUCCESS(
-            f'Импорт контента завершён. Заявок сохранено: {lead_count_after}, '
-            f'визитов: {visit_count_after}.'
+            f'Импорт контента завершён. Заявок сохранено: {len(lead_fp_after)}, '
+            f'визитов: {len(visit_fp_after)}.'
         ))
         self.stdout.write('При необходимости: docker compose --profile prerender run --rm prerender')

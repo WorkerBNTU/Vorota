@@ -191,6 +191,9 @@ class LeadCreateSerializer(serializers.ModelSerializer):
     def validate_message(self, value):
         return sanitize_text(value, 2000)
 
+    def validate_source(self, value):
+        return sanitize_text(value, 100) or 'сайт'
+
     def validate_website(self, value):
         return sanitize_text(value, 200)
 

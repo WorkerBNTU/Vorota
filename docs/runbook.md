@@ -94,11 +94,11 @@ docker compose --profile prerender run --rm prerender
 ### Сброс пароля админа
 
 ```bash
-# локально
-python manage.py create_admin --username admin --password 'новый-пароль'
+# локально — нужен флаг --reset, иначе пароль существующего user не меняется
+python manage.py create_admin --username admin --password 'новый-пароль' --reset
 
 # в Docker
-docker compose exec backend python manage.py create_admin --username admin --password 'новый-пароль'
+docker compose exec backend python manage.py create_admin --username admin --password 'новый-пароль' --reset
 ```
 
 Полный админ (`is_superuser`) — весь контент + CRM + аналитика посещений.
@@ -168,21 +168,28 @@ Windows без Docker: `python manage.py export_site_content` / `import_site_con
 
 ### Восстановление media после чистого деплоя
 
-Без volume/бэкапа картинки пропадут (в git их нет). Восстановите `media_data` из бэкапа или через `import_content.sh`; корневая папка `images/` — только архив старого сайта, приложение её не читает.
+Без volume/бэкапа картинки пропадут (в git их нет). Восстановите через
+`bash scripts/import_site_content.sh …` (контент + media, **заявки сохраняются**)
+или полный `import_content.sh` только на пустом проде. Корневая `images/` —
+архив старого сайта, приложение её не читает.
 
 ## Чеклист первого деплоя
 
-- [ ] Скопировать `.env.example` → `.env`, задать `DJANGO_SECRET_KEY`, `ADMIN_PASSWORD`, `SITE_URL=https://…`, `DEBUG=False`
-- [ ] `TELEGRAM_*`, `REDIS_URL`, `TRUST_PROXY_HEADERS=True`, `DB_ENGINE=postgresql` (как в compose)
-- [ ] `SENTRY_DSN` (backend) и при необходимости `VITE_SENTRY_DSN` (сборка фронта)
+- [ ] Скопировать `.env.example` → `.env`, задать `DJANGO_SECRET_KEY` (не из примера), `ADMIN_PASSWORD`, `DEBUG=False`
+- [ ] `SITE_URL=https://vorota-rb.by`
+- [ ] `ALLOWED_HOSTS` включает публичный домен (+ `www` при необходимости) и `frontend` для prerender
+- [ ] `CSRF_TRUSTED_ORIGINS` / `CORS_ALLOWED_ORIGINS` = `https://vorota-rb.by` (и www)
+- [ ] Внешний TLS-прокси шлёт на nginx `X-Forwarded-Proto: https` (не затирать в `http`)
+- [ ] Сменить `DB_PASSWORD` (не оставлять `vorota`)
+- [ ] `TELEGRAM_*`, `REDIS_URL` (в compose уже), `TRUST_PROXY_HEADERS=True`
+- [ ] `SENTRY_DSN` (backend) и при необходимости `VITE_SENTRY_DSN` (build-arg frontend)
 - [ ] `docker compose up --build -d`
-- [ ] `docker compose exec backend python manage.py migrate`
 - [ ] Залить media+контент: `bash scripts/import_site_content.sh …` (без потери будущих заявок)
-      или полный `import_content.sh` только на **пустом** проде / `seed_data` + ручная загрузка
+      или полный `import_content.sh` только на **пустом** проде
 - [ ] `docker compose exec backend python manage.py create_admin` (пароль из `ADMIN_PASSWORD`)
-- [ ] HTTPS на внешнем прокси; порт 8000 не торчит наружу
-- [ ] `docker compose --profile prerender run --rm prerender`
-- [ ] Проверить заявку (`POST /api/leads/` → Telegram) и картинки `/media/…`
+- [ ] HTTPS на внешнем прокси; порт 8000 только localhost
+- [ ] **Обязательно:** `docker compose --profile prerender run --rm prerender` (+ желательно cron)
+- [ ] Проверить: `curl -A Googlebot https://…/` не 404; заявка → Telegram; картинки `/media/…`
 
 ## Инциденты
 

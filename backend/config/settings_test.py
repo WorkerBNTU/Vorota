@@ -4,7 +4,15 @@
 и не упирались в rate-limit / Telegram.
 """
 
-from .settings import *  # noqa: F403
+import os
+
+# До import settings: load_dotenv не перезапишет уже заданные ключи.
+os.environ['DEBUG'] = 'True'
+os.environ.setdefault('DJANGO_SECRET_KEY', 'test-secret-key-not-for-production')
+os.environ.setdefault('CSRF_TRUSTED_ORIGINS', 'http://testserver')
+os.environ.setdefault('CORS_ALLOWED_ORIGINS', 'http://testserver')
+
+from .settings import *  # noqa: E402, F403
 
 DEBUG = True
 SECRET_KEY = 'test-secret-key-not-for-production'

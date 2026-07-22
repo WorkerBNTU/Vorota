@@ -11,7 +11,7 @@ class Command(BaseCommand):
     def add_arguments(self, parser):
         parser.add_argument('--username', default='admin')
         parser.add_argument('--password', default='')
-        parser.add_argument('--email', default='admin@vorota-pro.ru')
+        parser.add_argument('--email', default='admin@vorota-rb.by')
         parser.add_argument(
             '--reset',
             action='store_true',

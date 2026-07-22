@@ -129,10 +129,20 @@ def resolve_map_embed_url(obj):
 
 
 def resolve_map_page_url(obj):
-    """Ссылка «Открыть в Яндекс.Картах» — всегда на карточку org с координатами."""
+    """Ссылка «Открыть в Яндекс.Картах» — только официальные хосты /maps/org/."""
     custom = (getattr(obj, 'map_embed_url', '') or '').strip()
     if custom and not is_embeddable_map_url(custom) and not is_unreliable_map_share_url(custom):
-        if '/maps/org/' in custom:
+        try:
+            parsed = urlparse(custom)
+        except ValueError:
+            parsed = None
+        host = (parsed.hostname or '').lower() if parsed else ''
+        if (
+            parsed
+            and parsed.scheme in ('https', 'http')
+            and host in _EMBED_HOSTS
+            and '/maps/org/' in (parsed.path or '')
+        ):
             return custom
 
     return build_map_page_url(

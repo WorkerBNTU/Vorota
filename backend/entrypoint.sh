@@ -1,13 +1,22 @@
 #!/bin/bash
 set -e
 
-if [ "${DEBUG:-False}" = "False" ] || [ "${DEBUG}" = "0" ]; then
+BANNED_SECRETS="dev-insecure-change-me-in-production change-me-in-production your-secret-key-change-in-production"
+
+if [ "${DEBUG:-False}" = "False" ] || [ "${DEBUG}" = "0" ] || [ "${DEBUG}" = "false" ]; then
   if [ -z "${ADMIN_PASSWORD}" ]; then
     echo "ERROR: ADMIN_PASSWORD must be set when DEBUG=False" >&2
     exit 1
   fi
-  if [ "${DJANGO_SECRET_KEY:-change-me-in-production}" = "change-me-in-production" ]; then
-    echo "ERROR: DJANGO_SECRET_KEY must be set when DEBUG=False" >&2
+  KEY="${DJANGO_SECRET_KEY:-}"
+  for banned in $BANNED_SECRETS; do
+    if [ "$KEY" = "$banned" ] || [ -z "$KEY" ]; then
+      echo "ERROR: DJANGO_SECRET_KEY must be a unique non-placeholder value when DEBUG=False" >&2
+      exit 1
+    fi
+  done
+  if [ -z "${REDIS_URL}" ]; then
+    echo "ERROR: REDIS_URL must be set when DEBUG=False" >&2
     exit 1
   fi
 fi

@@ -109,8 +109,14 @@ async function request<T = unknown>(
   })
 
   if (res.status === 403 && method !== 'GET' && !isRetry) {
-    csrfToken = null
-    return request<T>(url, options, true)
+    const err = (await res.json().catch(() => ({}))) as ApiErrorBody
+    const detail = flattenApiMessage(err) || ''
+    const looksLikeCsrf = /csrf/i.test(detail) || /CSRF/i.test(String(err.detail ?? ''))
+    if (looksLikeCsrf) {
+      csrfToken = null
+      return request<T>(url, options, true)
+    }
+    throw new ApiError(detail || 'Ошибка запроса', 403, err)
   }
 
   if (!res.ok) {
@@ -175,13 +181,15 @@ function cachedGet<T = unknown>(url: string, ttl = GET_CACHE_TTL): Promise<T> {
 
 export function invalidatePublicCache(): void {
   getCache.clear()
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new Event('vorota:public-cache-invalidate'))
+  }
 }
 
 export const api = {
   getContent: () => cachedGet('/content/'),
   getCatalogMenu: () => cachedGet('/catalog/menu/'),
   getCatalogPage: (slug: string) => cachedGet(`/catalog/pages/${slug}/`),
-  getCatalogSection: (slug: string) => cachedGet(`/catalog/sections/${slug}/`),
   getPortfolio: (category?: string) =>
     cachedGet(`/portfolio/${category ? `?category=${category}` : ''}`),
   getCaptcha: () => request<CaptchaResponse>('/captcha/'),

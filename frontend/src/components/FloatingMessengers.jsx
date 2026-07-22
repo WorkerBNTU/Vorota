@@ -1,10 +1,12 @@
 import { useSiteData } from '../context/SiteDataContext'
+import { telegramUrl } from '../utils/safeLinks'
 import './FloatingUI.css'
 
 export default function FloatingMessengers() {
   const { settings } = useSiteData()
+  const tg = telegramUrl(settings?.telegram)
 
-  if (!settings?.whatsapp && !settings?.telegram) return null
+  if (!settings?.whatsapp && !tg) return null
 
   return (
     <div className="fab-messengers" aria-label="Мессенджеры">
@@ -20,9 +22,9 @@ export default function FloatingMessengers() {
           💬
         </a>
       )}
-      {settings.telegram && (
+      {tg && (
         <a
-          href={`https://t.me/${settings.telegram}`}
+          href={tg}
           className="fab-btn tg"
           target="_blank"
           rel="noopener noreferrer"

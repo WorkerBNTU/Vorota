@@ -83,11 +83,8 @@ class Command(BaseCommand):
             fix_catalog_hierarchy()
             self.stdout.write(f'Каталог загружен из фикстуры ({FIXTURE.name})')
         elif ContentSection.objects.exists():
-            fixed = fix_catalog_hierarchy()
-            if fixed:
-                self.stdout.write(f'Иерархия каталога обновлена ({fixed} записей)')
-            else:
-                self.stdout.write('Каталог уже существует — пропуск')
+            # Не чиним иерархию на каждом Docker-старте — иначе ручные parent/menu «плывут».
+            self.stdout.write('Каталог уже существует — пропуск (hierarchy без --force)')
 
         services_data = [
             {

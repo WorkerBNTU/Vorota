@@ -1,7 +1,8 @@
-import { Link } from 'react-router-dom'
+﻿import { Link } from 'react-router-dom'
 import { useSiteData } from '../context/SiteDataContext'
 import { SITE_DEFAULTS } from '../constants/siteDefaults'
 import { catalogLink } from '../pages/CatalogPage'
+import { telegramUrl } from '../utils/safeLinks'
 import './Footer.css'
 
 export default function Footer() {
@@ -10,6 +11,7 @@ export default function Footer() {
   const company = s.company_name || SITE_DEFAULTS.company_name
   const legalEntity = s.legal_entity_name || company
   const year = new Date().getFullYear()
+  const tg = telegramUrl(s.telegram)
 
   const productSections = catalogMenu.filter((sec) => sec.slug !== 'company' && sec.slug !== 'uslugi')
 
@@ -26,8 +28,8 @@ export default function Footer() {
                   WhatsApp
                 </a>
               )}
-              {s.telegram && (
-                <a href={`https://t.me/${s.telegram}`} className="messenger-btn tg" target="_blank" rel="noopener noreferrer">
+              {tg && (
+                <a href={tg} className="messenger-btn tg" target="_blank" rel="noopener noreferrer">
                   Telegram
                 </a>
               )}

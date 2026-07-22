@@ -1,7 +1,8 @@
 from pathlib import Path
 
+from django.conf import settings
 from django.core.management import call_command
-from django.core.management.base import BaseCommand
+from django.core.management.base import BaseCommand, CommandError
 
 from api.catalog_utils import fix_catalog_hierarchy
 from api.models import ContentPage, ContentSection
@@ -15,12 +16,7 @@ class Command(BaseCommand):
         'catalog_default.json (upsert по pk). В отличие от seed_data, '
         'выполняется в любой момент, а не только при пустой базе.\n\n'
         'ВНИМАНИЕ: перезаписывает поля разделов/страниц, у которых pk '
-        'совпадает с фикстурой, включая правки, сделанные через админку '
-        '(title, content, price, картинки и т.д. для этих записей). '
-        'Страницы/разделы, добавленные вручную в админке (их pk нет в '
-        'фикстуре), не затрагиваются. Используйте, когда осознанно хотите '
-        'откатить/обновить контент разделов из фикстуры — например, после '
-        'правки catalog_default.json разработчиком.'
+        'совпадает с фикстурой. На проде (DEBUG=False) нужен --force.'
     )
 
     def add_arguments(self, parser):
@@ -28,8 +24,17 @@ class Command(BaseCommand):
             '--yes', action='store_true',
             help='Не спрашивать подтверждение перед перезаписью.',
         )
+        parser.add_argument(
+            '--force', action='store_true',
+            help='Разрешить запуск при DEBUG=False (осознанно на проде).',
+        )
 
     def handle(self, *args, **options):
+        if not settings.DEBUG and not options['force']:
+            raise CommandError(
+                'update_catalog на проде (DEBUG=False) запрещён без --force. '
+                'Предпочтительнее import_site_content с дев-снимка.'
+            )
         if not FIXTURE.exists():
             self.stderr.write(self.style.ERROR(f'Файл фикстуры не найден: {FIXTURE}'))
             return

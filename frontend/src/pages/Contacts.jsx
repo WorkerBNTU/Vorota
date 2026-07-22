@@ -4,6 +4,7 @@ import { useSiteData } from '../context/SiteDataContext'
 import { SITE_DEFAULTS } from '../constants/siteDefaults'
 import ContentImage from '../components/ContentImage'
 import useSiteMeta from '../hooks/useSiteMeta'
+import { isSafeMapEmbedUrl, telegramUrl } from '../utils/safeLinks'
 import { catalogLink } from './CatalogPage'
 import './Contacts.css'
 
@@ -17,6 +18,8 @@ const CONTACT_ITEMS = [
 export default function Contacts() {
   const { settings } = useSiteData()
   const s = settings || {}
+  const tg = telegramUrl(s.telegram)
+  const mapEmbed = isSafeMapEmbedUrl(s.map_url) ? s.map_url : null
 
   const values = {
     phone: s.phone || SITE_DEFAULTS.phone,
@@ -70,8 +73,8 @@ export default function Contacts() {
                       WhatsApp
                     </a>
                   )}
-                  {s.telegram && (
-                    <a href={`https://t.me/${s.telegram}`} className="messenger-btn tg" target="_blank" rel="noopener noreferrer">
+                  {tg && (
+                    <a href={tg} className="messenger-btn tg" target="_blank" rel="noopener noreferrer">
                       Telegram
                     </a>
                   )}
@@ -90,7 +93,7 @@ export default function Contacts() {
             </div>
           </div>
 
-          {s.map_url && (
+          {mapEmbed && (
             <div className="map-section">
               <div className="map-caption">
                 <strong>{s.company_name || 'Офис'}</strong>
@@ -98,11 +101,12 @@ export default function Contacts() {
               </div>
               <div className="map-container">
                 <iframe
-                  src={s.map_url}
+                  src={mapEmbed}
                   title={`Карта — ${s.company_name || 'офис'}`}
                   allowFullScreen
                   loading="lazy"
                   referrerPolicy="no-referrer-when-downgrade"
+                  sandbox="allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox"
                 />
               </div>
               {s.map_page_url && (

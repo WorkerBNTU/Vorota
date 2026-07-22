@@ -12,7 +12,7 @@ from datetime import datetime, timezone as dt_timezone
 
 from django.conf import settings
 
-IMAGE_EXTENSIONS = {'.jpg', '.jpeg', '.png', '.webp', '.gif', '.svg'}
+IMAGE_EXTENSIONS = {'.jpg', '.jpeg', '.png', '.webp', '.gif'}
 
 
 def list_media_images(request):
