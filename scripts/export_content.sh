@@ -1,6 +1,8 @@
 ﻿#!/usr/bin/env bash
-# Экспорт БД + media для переноса staging → prod (или бэкапа).
-# Запуск из корня репозитория:
+# Экспорт ПОЛНОЙ БД + media (включая заявки). Для бэкапа / полного клона.
+# Для обновления контента на проде без потери CRM:
+#   bash scripts/export_site_content.sh
+# Запуск:
 #   bash scripts/export_content.sh [каталог_выгрузки]
 set -euo pipefail
 
@@ -35,8 +37,11 @@ else
 fi
 
 cat > "$OUT/README.txt" <<EOF
-Выгрузка ВоротаРБ: $(date -Iseconds)
-Импорт: bash scripts/import_content.sh "$OUT"
+Выгрузка ВоротаРБ (ПОЛНАЯ БД + media): $(date -Iseconds)
+ВНИМАНИЕ: import_content.sh затирает заявки CRM на целевом окружении.
+Для обновления контента на проде используйте:
+  bash scripts/export_site_content.sh / bash scripts/import_site_content.sh
+Полный импорт: bash scripts/import_content.sh "$OUT"
 EOF
 
 echo "Готово: $OUT"

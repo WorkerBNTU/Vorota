@@ -166,7 +166,8 @@ SPECTACULAR_SETTINGS = {
     'TITLE': 'VorotaRB API',
     'DESCRIPTION': (
         'Публичный контент, заявки и session-админка. '
-        'Эндпоинты `/api/admin/*` требуют cookie сессии и `is_staff`.'
+        '`/api/admin/*`: cookie-сессия; роль admin (superuser) — контент+CRM, '
+        'manager (группа manager) — только заявки (статус/заметки).'
     ),
     'VERSION': '1.0.0',
     'SERVE_INCLUDE_SCHEMA': False,

@@ -1,8 +1,9 @@
 ﻿#!/usr/bin/env bash
-# Импорт БД + media из каталога, созданного export_content.sh.
+# Импорт ПОЛНОЙ БД + media из каталога export_content.sh.
+# ВНИМАНИЕ: затирает заявки CRM. Для контента без потери лидов:
+#   bash scripts/import_site_content.sh …
 # Запуск из корня репозитория:
 #   bash scripts/import_content.sh путь/к/export-...
-# ВНИМАНИЕ: перезаписывает текущую БД и media на целевом окружении.
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"

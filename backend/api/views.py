@@ -76,17 +76,6 @@ class SiteContentView(APIView):
         return Response(data)
 
 
-class ServiceListView(generics.ListAPIView):
-    permission_classes = [AllowAny]
-    serializer_class = ServiceSerializer
-
-    def get_queryset(self):
-        return Service.objects.filter(is_active=True)
-
-    def get_serializer_context(self):
-        return {'request': self.request}
-
-
 class PortfolioListView(generics.ListAPIView):
     permission_classes = [AllowAny]
     serializer_class = PortfolioItemSerializer

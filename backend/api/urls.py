@@ -21,7 +21,6 @@ from .views import (
     CatalogSectionView,
     LeadCreateView,
     PortfolioListView,
-    ServiceListView,
     SiteContentView,
     VisitRecordView,
 )
@@ -48,7 +47,6 @@ urlpatterns = [
     path('catalog/sections/<slug:section_slug>/', CatalogSectionView.as_view(), name='catalog-section'),
     path('catalog/pages/<path:slug>/', CatalogPageDetailView.as_view(), name='catalog-page'),
     path('content/', SiteContentView.as_view(), name='site-content'),
-    path('services/', ServiceListView.as_view(), name='services'),
     path('portfolio/', PortfolioListView.as_view(), name='portfolio'),
     path('leads/', LeadCreateView.as_view(), name='lead-create'),
     path('visits/', VisitRecordView.as_view(), name='visit-record'),

@@ -134,20 +134,37 @@ bash scripts/export_content.sh
 
 ### Staging → prod (наполнение разраба)
 
-Контент и фото **не в git**. Перенос — явная процедура:
+Контент и фото **не в git**.
+
+#### Предпочтительно: только контент (заявки на проде сохраняются)
 
 ```bash
-# на staging / машине разработчика
-bash scripts/export_content.sh ./backups/from-staging
+# на машине с актуальным контентом (dev)
+bash scripts/export_site_content.sh ./backups/from-dev
+# или: cd backend && python manage.py export_site_content ../backups/from-dev
 
-# скопировать каталог на прод (scp/rsync), затем на проде:
-bash scripts/import_content.sh ./backups/from-staging
+# на проде — бэкап на всякий случай (полный, см. ниже), затем:
+bash scripts/import_site_content.sh ./backups/from-dev
 docker compose --profile prerender run --rm prerender
 ```
 
-`import_content.sh` **перезаписывает** БД и media на целевом окружении — сначала сделайте бэкап прода тем же `export_content.sh`.
+`import_site_content` заменяет настройки/каталог/главную/портфолио и `media/`,
+но **не трогает** `Lead`, `SiteVisit` и пользователей. После импорта число заявок
+должно совпасть с тем, что было на проде (команда падает, если изменилось).
 
-Windows без Docker: скопируйте `backend/db.sqlite3` и папку `backend/media/` вручную (эквивалент SQLite-ветки скрипта).
+#### Полный снимок БД (опасно для live CRM)
+
+```bash
+bash scripts/export_content.sh ./backups/full
+bash scripts/import_content.sh ./backups/full
+```
+
+`import_content.sh` **перезаписывает всю БД и media** — заявки на целевом окружении
+пропадут. Используйте только для пустого прода / полного клона, не для регулярных
+обновлений контента.
+
+Windows без Docker: `python manage.py export_site_content` / `import_site_content`
+из `backend/` (или скопируйте `db.sqlite3`+`media/` вручную — это уже полный клон).
 
 ### Восстановление media после чистого деплоя
 
@@ -160,7 +177,8 @@ Windows без Docker: скопируйте `backend/db.sqlite3` и папку `
 - [ ] `SENTRY_DSN` (backend) и при необходимости `VITE_SENTRY_DSN` (сборка фронта)
 - [ ] `docker compose up --build -d`
 - [ ] `docker compose exec backend python manage.py migrate`
-- [ ] Залить media+контент: `bash scripts/import_content.sh …` **или** первичная загрузка через админку после `seed_data`
+- [ ] Залить media+контент: `bash scripts/import_site_content.sh …` (без потери будущих заявок)
+      или полный `import_content.sh` только на **пустом** проде / `seed_data` + ручная загрузка
 - [ ] `docker compose exec backend python manage.py create_admin` (пароль из `ADMIN_PASSWORD`)
 - [ ] HTTPS на внешнем прокси; порт 8000 не торчит наружу
 - [ ] `docker compose --profile prerender run --rm prerender`

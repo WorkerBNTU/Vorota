@@ -338,7 +338,7 @@ Vorota/
 │   │   └── admin/    # Админ-панель
 │   └── prerender/    # Puppeteer-скрипт генерации HTML-снапшотов для ботов
 ├── docs/             # ARCHITECTURE.md, runbook.md, screenshots/
-├── scripts/          # export/import content (БД + media)
+├── scripts/          # export/import: content-only (безопасно) и полный бэкап
 ├── .github/workflows # CI
 ├── docker-compose.yml
 └── .env.example
@@ -350,10 +350,9 @@ Vorota/
 
 | Метод | URL | Описание |
 |-------|-----|----------|
-| GET | `/api/content/` | Весь контент главной |
+| GET | `/api/content/` | Контент главной (настройки, слайды, услуги, УТП, этапы) |
 | GET | `/api/catalog/menu/` | Разделы каталога для меню |
 | GET | `/api/catalog/pages/<путь>/` | Страница каталога |
-| GET | `/api/services/` | Список услуг (карточки главной) |
 | GET | `/api/portfolio/` | Портфолио (?category=gates) |
 | GET | `/api/captcha/` | Получить капчу |
 | POST | `/api/leads/` | Отправить заявку |
@@ -362,7 +361,7 @@ Vorota/
 | GET | `/api/auth/me/` | Проверка сессии |
 | GET | `/api/schema/` | OpenAPI schema |
 | GET | `/api/docs/` | Swagger UI (DEBUG / `ENABLE_API_DOCS`) |
-| * | `/api/admin/*` | CRUD (требует session + is_staff) |
+| * | `/api/admin/*` | CRUD (session; admin — контент+CRM, manager — заявки) |
 
 Полная схема генерируется автоматически: http://127.0.0.1:8000/api/docs/
 
