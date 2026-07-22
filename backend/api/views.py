@@ -8,12 +8,13 @@ from django.utils import timezone
 from rest_framework import generics, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.parsers import FormParser, JSONParser, MultiPartParser
-from rest_framework.permissions import AllowAny, IsAdminUser
+from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from .form_coercion import normalize_multipart_data
 from .media_library import list_media_images, resolve_library_path
+from .permissions import IsContentAdmin, IsCrmStaff
 from .models import (
     Advantage, ContentPage, ContentPageImage, ContentSection, HeroSlide, Lead,
     PortfolioItem, Service, SiteSettings, SiteVisit, WorkStep,
@@ -117,7 +118,7 @@ class LeadCreateView(generics.CreateAPIView):
 
 
 class AdminSiteSettingsView(APIView):
-    permission_classes = [IsAdminUser]
+    permission_classes = [IsContentAdmin]
     parser_classes = [MultiPartParser, FormParser, JSONParser]
 
     def get(self, request):
@@ -143,14 +144,14 @@ class AdminMediaLibraryView(APIView):
     админки можно было выбрать существующий файл вместо повторной загрузки
     того же самого фото (см. frontend/src/admin/ImagePicker.jsx)."""
 
-    permission_classes = [IsAdminUser]
+    permission_classes = [IsContentAdmin]
 
     def get(self, request):
         return Response(list_media_images(request))
 
 
 class AdminModelViewSet(viewsets.ModelViewSet):
-    permission_classes = [IsAdminUser]
+    permission_classes = [IsContentAdmin]
     parser_classes = [MultiPartParser, FormParser, JSONParser]
     # Имена ImageField-полей, для которых разрешён выбор уже загруженного
     # файла вместо повторной загрузки — фронтенд присылает
@@ -330,7 +331,7 @@ class VisitRecordView(APIView):
 
 
 class AdminVisitViewSet(viewsets.ReadOnlyModelViewSet):
-    permission_classes = [IsAdminUser]
+    permission_classes = [IsContentAdmin]
     serializer_class = SiteVisitSerializer
     http_method_names = ['get', 'head', 'options']
 
@@ -360,7 +361,7 @@ class AdminVisitViewSet(viewsets.ReadOnlyModelViewSet):
 
 
 class AdminLeadViewSet(viewsets.ModelViewSet):
-    permission_classes = [IsAdminUser]
+    permission_classes = [IsCrmStaff]
     serializer_class = LeadSerializer
     http_method_names = ['get', 'patch', 'delete', 'head', 'options']
 

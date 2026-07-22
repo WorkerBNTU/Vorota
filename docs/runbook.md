@@ -18,6 +18,8 @@ pre-commit install
 python manage.py migrate
 python manage.py seed_data
 python manage.py create_admin --username admin --password admin
+# Менеджер CRM (только заявки, без контента):
+# python manage.py create_manager --username manager --password manager
 python manage.py runserver
 
 # Frontend (другой терминал)
@@ -89,6 +91,16 @@ python manage.py create_admin --username admin --password 'новый-парол
 
 # в Docker
 docker compose exec backend python manage.py create_admin --username admin --password 'новый-пароль'
+```
+
+Полный админ (`is_superuser`) — весь контент + CRM + аналитика посещений.
+
+### Создать менеджера CRM
+
+Менеджер видит только заявки (и упрощённый дашборд), без каталога/настроек/аналитики посещений:
+
+```bash
+python manage.py create_manager --username manager --password 'надёжный-пароль'
 ```
 
 ### Обновить каталог из фикстуры (осознанно)

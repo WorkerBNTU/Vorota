@@ -46,7 +46,14 @@ cd frontend && npm install && npm run dev
 
 См. `.gitignore`. Перенос контента между staging и prod — процедура экспорта/импорта в runbook, не «залить media в git».
 
-## API-схема
+## Роли админки
+
+| Роль | Как создать | Доступ |
+|------|-------------|--------|
+| Админ | `create_admin` | весь контент + CRM |
+| Менеджер | `create_manager` | только заявки CRM |
+
+Права проверяются на API; UI скрывает недоступные разделы.
 
 В DEBUG: Swagger UI — http://127.0.0.1:8000/api/docs/, OpenAPI — `/api/schema/`.
 На проде UI включается только с `ENABLE_API_DOCS=True`.

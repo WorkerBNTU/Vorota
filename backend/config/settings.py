@@ -201,7 +201,7 @@ SENTRY_ENVIRONMENT = os.getenv(
 )
 SENTRY_TRACES_SAMPLE_RATE = float(os.getenv('SENTRY_TRACES_SAMPLE_RATE', '0.1'))
 
-if SENTRY_DSN:
+if SENTRY_DSN and os.environ.get('DJANGO_SETTINGS_MODULE') != 'config.settings_test':
     import sentry_sdk
     from sentry_sdk.integrations.django import DjangoIntegration
 
