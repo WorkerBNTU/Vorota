@@ -32,7 +32,7 @@ export default function Contacts() {
     title: 'Контакты — ВоротаРБ по всей Беларуси',
     description:
       `Свяжитесь с нами: ${values.phone}, ${values.address}. ${values.working_hours}. ` +
-      'Купить и установить ворота DoorHan в Минске и регионах Беларуси.',
+      'Купить и установить ворота в Минске и регионах Беларуси. Официальный дилер DoorHan.',
     path: '/contacts',
   })
 

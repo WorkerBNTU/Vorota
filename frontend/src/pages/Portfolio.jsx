@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+﻿import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { api } from '../api'
 import BeforeAfterSlider from '../components/BeforeAfterSlider'
@@ -30,9 +30,9 @@ export default function Portfolio() {
   }, [filter])
 
   useSiteMeta({
-    title: 'Примеры работ — ворота DoorHan в Беларуси',
+    title: 'Примеры работ — ворота в Беларуси',
     description:
-      'Реальные проекты ВоротаРБ: установка ворот, роллет, шлагбаумов и ремонт автоматики DoorHan в Минске и по всей Беларуси.',
+      'Реальные проекты ВоротаРБ: установка ворот, роллет, шлагбаумов и ремонт автоматики в Минске и по всей Беларуси. DoorHan, BFT и другие бренды.',
     path: '/portfolio',
   })
 

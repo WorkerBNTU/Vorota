@@ -1,4 +1,4 @@
-const TITLE_LIMIT = 60
+﻿const TITLE_LIMIT = 60
 const DESCRIPTION_LIMIT = 160
 
 function CharCounter({ length, limit }) {
@@ -13,14 +13,14 @@ function CharCounter({ length, limit }) {
 // Общий блок SEO-полей (meta_title/meta_description) — используется и для
 // страниц каталога (AdminCatalog), и для настроек сайта/главной (AdminContent).
 // Поля необязательны: если оставить пустыми, фронтенд подставит шаблоны
-// «Купить … DoorHan» / «в Беларуси» (см. seoMeta.js / useSiteMeta.js).
+// «Купить … в Беларуси» (+ бренд из поля manufacturer, если заполнен).
 export default function SeoFields({
   metaTitle,
   metaDescription,
   onChangeTitle,
   onChangeDescription,
-  titlePlaceholder = 'Напр.: Купить секционные ворота DoorHan в Беларуси',
-  descriptionPlaceholder = 'Минск, Витебск, Гомель… + бренд DoorHan, до ~160 символов',
+  titlePlaceholder = 'Напр.: Купить секционные ворота в Беларуси',
+  descriptionPlaceholder = 'Минск и регионы; при необходимости — DoorHan / BFT, до ~160 символов',
 }) {
   return (
     <fieldset style={{ border: '1px dashed var(--color-border, #d8d8d8)', borderRadius: 8, padding: 12, marginBottom: 16 }}>

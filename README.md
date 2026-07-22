@@ -91,8 +91,8 @@ cd frontend && npm install && npm run dev
 Все заявки дублируются в Telegram-чат. Настройка через `TELEGRAM_BOT_TOKEN` и `TELEGRAM_CHAT_ID`.
 
 ### SEO
-- Гео и бренды: тексты и fallback meta ориентированы на **всю Беларусь** (Минск, Витебск, Гомель, Брест, Гродно, Могилёв) и запросы вроде «купить ворота DoorHan». Офис в Минске — это адрес, не единственный регион продвижения.
-- У страниц каталога и настроек сайта есть поля **Meta title / Meta description** (вкладка SEO) — если оставить пустыми, фронт подставляет шаблоны с «Купить … DoorHan» / «в Беларуси».
+- Гео и бренды: **H1 / meta title** — про Беларусь (Минск и регионы), без «всё = DoorHan». Бейдж/подзаголовок «официальный дилер DoorHan» — ок. Запросы вроде «купить ворота DoorHan» закрываются description, JSON-LD (`brand`/`knowsAbout`) и meta страниц каталога, где заполнен `manufacturer`.
+- У страниц каталога и настроек сайта есть поля **Meta title / Meta description** — если пусто, фронт подставляет «Купить … в Беларуси» (+ бренд только из `manufacturer`).
 - **Структурированные данные (JSON-LD)**: `HomeAndConstructionBusiness` (areaServed = Беларусь + города) на всех страницах, `BreadcrumbList` и `Product`/`Service` на страницах каталога. Canonical и `url` в схеме берутся из `SITE_URL` (`settings.site_url` в API), а не из `window.location` (важно для prerender).
 - **Аналитика**: Яндекс.Метрика и Google Analytics (GA4) — через админку («Настройки сайта» → «Аналитика»).
 - Несуществующие маршруты: страница 404 с `noindex`. Для ботов без снапшота nginx отдаёт SPA (JS-рендер); после prerender — полный HTML.

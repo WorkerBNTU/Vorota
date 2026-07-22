@@ -9,8 +9,9 @@ export function getSiteOrigin(settings) {
 }
 
 /**
- * Fallback SEO для страниц каталога без заполненных meta_* —
- * Беларусь + бренд (DoorHan), без упора только в Минск.
+ * Fallback SEO для страниц каталога без meta_*.
+ * Главный акцент — Беларусь; бренд в title только если задан manufacturer у страницы
+ * (DoorHan / BFT / …), без подстановки DoorHan по умолчанию.
  */
 export function catalogPageSeoTitle(page) {
   if (!page) return undefined
@@ -18,11 +19,12 @@ export function catalogPageSeoTitle(page) {
   const title = (page.title || '').trim()
   if (!title) return undefined
   if (/купить/i.test(title)) return title
-  const brand = (page.manufacturer || 'DoorHan').trim()
   if (page.page_type === 'service') {
     return `${title} в Беларуси — ВоротаРБ`
   }
-  return `Купить ${title} — ${brand} | ВоротаРБ`
+  const brand = (page.manufacturer || '').trim()
+  if (brand) return `Купить ${title} — ${brand} | ВоротаРБ`
+  return `Купить ${title} в Беларуси — ВоротаРБ`
 }
 
 export function catalogPageSeoDescription(page) {
@@ -30,8 +32,12 @@ export function catalogPageSeoDescription(page) {
   if (page.meta_description?.trim()) return page.meta_description.trim()
   const base = (page.excerpt || page.title || '').trim()
   if (!base) return undefined
+  const brand = (page.manufacturer || '').trim()
+  const brandNote = brand
+    ? ` Бренд: ${brand}.`
+    : ' В том числе DoorHan, BFT и другие бренды.'
   return (
     `${base} Продажа, монтаж и обслуживание по Минску, Витебску, Гомелю, ` +
-    `Бресту, Гродно, Могилёву и всей Беларуси. Официальный дилер DoorHan — ВоротаРБ.`
+    `Бресту, Гродно, Могилёву и всей Беларуси.${brandNote} ВоротаРБ.`
   )
 }

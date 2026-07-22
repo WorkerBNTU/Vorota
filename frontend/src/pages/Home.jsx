@@ -81,8 +81,8 @@ export default function Home() {
           {settings.hero_badge && (
             <span className="hero-badge">{settings.hero_badge}</span>
           )}
-          <h1>{settings.hero_title || 'Купить ворота DoorHan в Беларуси'}</h1>
-          <p>{settings.hero_subtitle || 'Продажа, монтаж и обслуживание по Минску, регионам и всей стране'}</p>
+          <h1>{settings.hero_title || 'Купить ворота и роллеты в Беларуси'}</h1>
+          <p>{settings.hero_subtitle || 'Продажа, монтаж и обслуживание по Минску, регионам и всей стране. Официальный дилер DoorHan.'}</p>
           <div className="hero-actions">
             <button type="button" className="btn btn-primary btn-lg" onClick={() => openModal('главная — первый экран')}>
               Получить консультацию

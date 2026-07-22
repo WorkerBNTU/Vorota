@@ -72,7 +72,7 @@ docker compose --profile prerender run --rm prerender
 # exit code 0 только если все маршруты из sitemap успешно отрисовались
 ```
 
-Обновить SEO-тексты главной (Беларусь + DoorHan) без сброса реквизитов:
+Обновить SEO-тексты главной (Беларусь в H1; бренды во вторичных текстах) без сброса реквизитов:
 
 ```bash
 docker compose exec backend python manage.py seed_data --refresh-seo

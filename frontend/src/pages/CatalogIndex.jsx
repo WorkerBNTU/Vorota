@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+﻿import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useSiteData } from '../context/SiteDataContext'
 import ContentImage from '../components/ContentImage'
@@ -40,9 +40,9 @@ export default function CatalogIndex() {
   }, [catalogMenu])
 
   useSiteMeta({
-    title: 'Каталог ворот и автоматики DoorHan',
+    title: 'Каталог ворот и автоматики',
     description:
-      'Каталог ворот, роллет, автоматики и шлагбаумов DoorHan — купить и установить в Минске, Витебске, Гомеле, Бресте, Гродно, Могилёве и по всей Беларуси. ВоротаРБ.',
+      'Каталог ворот, роллет, автоматики и шлагбаумов — купить и установить в Минске, Витебске, Гомеле, Бресте, Гродно, Могилёве и по всей Беларуси. Официальный дилер DoorHan — ВоротаРБ.',
     path: '/catalog',
   })
 
@@ -55,7 +55,7 @@ export default function CatalogIndex() {
             <span> / Каталог</span>
           </nav>
           <h1>Каталог ворот и автоматики</h1>
-          <p>DoorHan и комплектующие — продажа и монтаж по всей Беларуси</p>
+          <p>Продажа и монтаж по всей Беларуси — DoorHan, BFT и другие бренды</p>
         </div>
       </section>
 

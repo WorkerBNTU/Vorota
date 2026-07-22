@@ -1,4 +1,4 @@
-// JSON-LD (schema.org). Публичный URL — из settings.site_url (Django SITE_URL),
+﻿// JSON-LD (schema.org). Публичный URL — из settings.site_url (Django SITE_URL),
 // чтобы prerender за http://frontend не писал канон/схему с внутренним хостом.
 
 import { getSiteOrigin } from './seoMeta'
@@ -52,7 +52,12 @@ export function buildOrganizationSchema(settings) {
     address,
     geo,
     areaServed: areaServedBelarus(),
-    brand: { '@type': 'Brand', name: 'DoorHan' },
+    // Несколько брендов: DoorHan — дилерство, плюс другие в ассортименте.
+    brand: [
+      { '@type': 'Brand', name: 'DoorHan' },
+      { '@type': 'Brand', name: 'BFT' },
+    ],
+    knowsAbout: ['ворота', 'роллеты', 'шлагбаумы', 'автоматика', 'DoorHan', 'BFT'],
     openingHours: settings.working_hours || undefined,
     image: settings.logo_url || undefined,
     logo: settings.logo_url || undefined,
@@ -92,7 +97,7 @@ export function buildProductSchema(page, settings) {
     image: page.image_url || undefined,
     brand: page.manufacturer
       ? { '@type': 'Brand', name: page.manufacturer }
-      : { '@type': 'Brand', name: 'DoorHan' },
+      : undefined,
     model: page.model || undefined,
     url,
     offers: page.price != null
@@ -121,7 +126,9 @@ export function buildServiceSchema(page, settings) {
     image: page.image_url || undefined,
     provider: settings ? { '@type': 'Organization', name: settings.company_name } : undefined,
     areaServed: areaServedBelarus(),
-    brand: { '@type': 'Brand', name: 'DoorHan' },
+    brand: page.manufacturer
+      ? { '@type': 'Brand', name: page.manufacturer }
+      : undefined,
     url: origin ? `${origin}/catalog/${page.slug}` : `/catalog/${page.slug}`,
   }
 }
