@@ -417,8 +417,24 @@ class SitemapView(APIView):
 
     def get(self, request):
         base = settings.SITE_URL
+        latest_page = (
+            ContentPage.objects.filter(is_active=True)
+            .order_by('-updated_at')
+            .values_list('updated_at', flat=True)
+            .first()
+        )
+        static_lastmod = (
+            latest_page.date().isoformat()
+            if latest_page
+            else timezone.localdate().isoformat()
+        )
         entries = [
-            {'loc': f'{base}{path}', 'changefreq': changefreq, 'priority': priority, 'lastmod': None}
+            {
+                'loc': f'{base}{path}',
+                'changefreq': changefreq,
+                'priority': priority,
+                'lastmod': static_lastmod,
+            }
             for path, changefreq, priority in STATIC_SITEMAP_ROUTES
         ]
 

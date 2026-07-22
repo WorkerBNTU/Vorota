@@ -11,24 +11,24 @@ FIXTURE = Path(__file__).resolve().parents[2] / 'fixtures' / 'catalog_default.js
 # Значения только для первого заполнения пустой БД (не затирают правки из админки).
 _SETTINGS_DEFAULTS = {
     'company_name': 'ВоротаРБ',
-    'tagline': 'Продажа, монтаж и обслуживание ворот, роллет и автоматики по всей Беларуси',
-    'hero_title': 'Ворота и роллеты DoorHan — с замером и бесплатной доставкой',
+    'tagline': 'Продажа, монтаж и обслуживание ворот, роллет и автоматики DoorHan по всей Беларуси',
+    'hero_title': 'Купить ворота и роллеты DoorHan в Беларуси — с замером и доставкой',
     'hero_subtitle': (
-        'Продажа, монтаж, наладка и обслуживание ворот и роллет всех видов. '
-        'Официальный дилер DoorHan с 2013 года.'
+        'Официальный дилер DoorHan: продажа, монтаж и обслуживание ворот и роллет. '
+        'Офис в Минске — работаем по Витебску, Гомелю, Бресту, Гродно, Могилёву и всей стране.'
     ),
     'phone': '+375 (29) 888-06-88',
     'email': 'vorotarb@mail.ru',
     'address': '220099 г. Минск, ул. Брестская, 2, каб. 205',
     'footer_description': (
-        'ООО «ВоротаРБ» — продажа, монтаж и обслуживание ворот, роллет, шлагбаумов '
-        'и гаражных дверей. Официальный дилер DoorHan.'
+        'ООО «ВоротаРБ» — купить и установить ворота, роллеты, шлагбаумы и гаражные двери DoorHan '
+        'в Беларуси. Официальный дилер с 2013 года.'
     ),
     'working_hours': 'Пн–Пт: 9:00–18:00',
-    'meta_title': 'Ворота и автоматика под ключ в Минске — ВоротаРБ',
+    'meta_title': 'Купить ворота DoorHan в Беларуси — ВоротаРБ | Минск и регионы',
     'meta_description': (
-        'Продажа, монтаж и обслуживание ворот, роллет, шлагбаумов и гаражных дверей '
-        'в Минске и по всей Беларуси. Официальный дилер DoorHan.'
+        'Купить ворота, роллеты и автоматику DoorHan в Беларуси: Минск, Витебск, Гомель, Брест, '
+        'Гродно, Могилёв. Продажа, монтаж и обслуживание — официальный дилер ВоротаРБ.'
     ),
     'legal_entity_name': 'ООО «ВоротаРБ»',
     'unp': '692057005',
@@ -39,11 +39,22 @@ _SETTINGS_DEFAULTS = {
 }
 
 
+# Поля SEO/hero — обновляются через --refresh-seo без полного --force-settings.
+_SEO_REFRESH_FIELDS = (
+    'tagline',
+    'hero_title',
+    'hero_subtitle',
+    'footer_description',
+    'meta_title',
+    'meta_description',
+)
+
+
 class Command(BaseCommand):
     help = (
         'Заполняет базу начальными данными. SiteSettings не перезаписываются, '
         'если поля уже заполнены (безопасный повторный запуск из entrypoint). '
-        'Полный сброс настроек: --force-settings.'
+        'Полный сброс настроек: --force-settings. Только SEO/hero: --refresh-seo.'
     )
 
     def add_arguments(self, parser):
@@ -52,21 +63,33 @@ class Command(BaseCommand):
             action='store_true',
             help='Перезаписать SiteSettings и legal-тексты дефолтами',
         )
+        parser.add_argument(
+            '--refresh-seo',
+            action='store_true',
+            help=(
+                'Обновить tagline/hero/meta/footer из актуальных SEO-дефолтов '
+                '(Беларусь + DoorHan), без сброса реквизитов и legal'
+            ),
+        )
 
     def handle(self, *args, **options):
         force = options['force_settings']
+        refresh_seo = options['refresh_seo']
         settings = SiteSettings.load()
         changed = []
         for field, value in _SETTINGS_DEFAULTS.items():
             current = getattr(settings, field, '') or ''
-            if force or not str(current).strip():
+            should_write = force or not str(current).strip()
+            if refresh_seo and field in _SEO_REFRESH_FIELDS:
+                should_write = True
+            if should_write:
                 setattr(settings, field, value)
                 changed.append(field)
         if changed:
             settings.save(update_fields=changed)
             self.stdout.write(f'Настройки сайта: заполнены поля {", ".join(changed)}')
         else:
-            self.stdout.write('Настройки сайта уже заполнены — пропуск (без --force-settings)')
+            self.stdout.write('Настройки сайта уже заполнены — пропуск (без --force-settings / --refresh-seo)')
 
         SiteSettings._ensure_legal_defaults(
             SiteSettings.load(),

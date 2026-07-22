@@ -27,6 +27,9 @@ class SiteSettingsSerializer(serializers.ModelSerializer):
     logo_url = serializers.SerializerMethodField()
     map_url = serializers.SerializerMethodField()
     map_page_url = serializers.SerializerMethodField()
+    # Публичный origin из Django SITE_URL — для canonical/JSON-LD на фронте
+    # (не window.location: иначе prerender пишет http://frontend).
+    site_url = serializers.SerializerMethodField()
 
     class Meta:
         model = SiteSettings
@@ -44,6 +47,7 @@ class SiteSettingsSerializer(serializers.ModelSerializer):
             'terms_of_use', 'terms_updated_at',
             'cookie_policy', 'cookie_updated_at',
             'consent_checkbox_label',
+            'site_url',
         ]
 
     def get_logo_url(self, obj):
@@ -59,6 +63,10 @@ class SiteSettingsSerializer(serializers.ModelSerializer):
 
     def get_map_page_url(self, obj):
         return resolve_map_page_url(obj)
+
+    def get_site_url(self, obj):
+        from django.conf import settings as dj_settings
+        return (getattr(dj_settings, 'SITE_URL', '') or '').rstrip('/')
 
     def validate_map_embed_url(self, value):
         if not value:

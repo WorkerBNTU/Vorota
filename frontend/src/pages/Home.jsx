@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+﻿import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { useSiteData } from '../context/SiteDataContext'
 import { useLeadModal } from '../components/LeadModal'
@@ -81,8 +81,8 @@ export default function Home() {
           {settings.hero_badge && (
             <span className="hero-badge">{settings.hero_badge}</span>
           )}
-          <h1>{settings.hero_title || 'Современные ворота и автоматика под ключ'}</h1>
-          <p>{settings.hero_subtitle || 'От установки до управления со смартфона'}</p>
+          <h1>{settings.hero_title || 'Купить ворота DoorHan в Беларуси'}</h1>
+          <p>{settings.hero_subtitle || 'Продажа, монтаж и обслуживание по Минску, регионам и всей стране'}</p>
           <div className="hero-actions">
             <button type="button" className="btn btn-primary btn-lg" onClick={() => openModal('главная — первый экран')}>
               Получить консультацию

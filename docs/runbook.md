@@ -69,7 +69,16 @@ docker compose exec backend python manage.py create_admin  # если первы
 
 ```bash
 docker compose --profile prerender run --rm prerender
+# exit code 0 только если все маршруты из sitemap успешно отрисовались
 ```
+
+Обновить SEO-тексты главной (Беларусь + DoorHan) без сброса реквизитов:
+
+```bash
+docker compose exec backend python manage.py seed_data --refresh-seo
+```
+
+**Домены:** `vorota-rb.by` и старый сайт на другом домене — независимы; редиректов между ними нет.
 
 ## Переменные окружения (шпаргалка)
 
@@ -189,7 +198,8 @@ Windows без Docker: `python manage.py export_site_content` / `import_site_con
 - [ ] `docker compose exec backend python manage.py create_admin` (пароль из `ADMIN_PASSWORD`)
 - [ ] HTTPS на внешнем прокси; порт 8000 только localhost
 - [ ] **Обязательно:** `docker compose --profile prerender run --rm prerender` (+ желательно cron)
-- [ ] Проверить: `curl -A Googlebot https://…/` не 404; заявка → Telegram; картинки `/media/…`
+- [ ] Проверить: `curl -A Googlebot https://…/` отдаёт HTML с `<h1>` (не пустой shell); заявка → Telegram; картинки `/media/…`
+- [ ] В Вебмастере регион — **Беларусь** (не только Минск)
 - [ ] *(после запуска / при спаме)* заменить арифметическую капчу на **Turnstile** или аналог
       (см. «Безопасность» ниже)
 
@@ -201,9 +211,9 @@ Windows без Docker: `python manage.py export_site_content` / `import_site_con
 | Заявки не в Telegram | `TELEGRAM_BOT_TOKEN` / `TELEGRAM_CHAT_ID`, логи backend, Sentry (tag `subsystem=telegram`) |
 | 429 на формах | Redis доступен; не занижен ли `RATE_LIMIT_*`; не режут ли всех одним IP без `TRUST_PROXY_HEADERS` |
 | Пустые картинки на проде | volume `media_data`, права, nginx `/media/` |
-| Боты видят пустой SPA | давно ли гоняли `prerender`; есть ли файлы в `prerendered_data` |
+| Боты видят пустой SPA | давно ли гоняли `prerender`; volume `prerendered_data`; exit code cron; `SITE_URL`/`ALLOWED_HOSTS` для `frontend` |
 | Админка «не пускает» | `create_admin` / `create_manager`, группы, не перепутан ли пароль из `.env` |
-| После рестарта Docker слетели тексты сайта | `seed_data` больше не затирает заполненные поля; для сброса — `seed_data --force-settings` |
+| После рестарта Docker слетели тексты сайта | `seed_data` не затирает заполненные поля; SEO — `seed_data --refresh-seo`; полный сброс — `--force-settings` |
 
 ## Observability (Sentry)
 

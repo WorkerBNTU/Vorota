@@ -29,8 +29,10 @@ export default function Contacts() {
   }
 
   useSiteMeta({
-    title: 'Контакты',
-    description: `Свяжитесь с нами: ${values.phone}, ${values.address}. ${values.working_hours}.`,
+    title: 'Контакты — ВоротаРБ по всей Беларуси',
+    description:
+      `Свяжитесь с нами: ${values.phone}, ${values.address}. ${values.working_hours}. ` +
+      'Купить и установить ворота DoorHan в Минске и регионах Беларуси.',
     path: '/contacts',
   })
 

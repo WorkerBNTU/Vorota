@@ -46,6 +46,20 @@ function outFileFor(routePath) {
   return path.join(OUT_DIR, clean, 'index.html')
 }
 
+async function waitForRenderedContent(page) {
+  await page.waitForFunction(
+    () => {
+      const root = document.getElementById('root')
+      if (!root || !root.childElementCount) return false
+      const title = (document.title || '').trim()
+      if (title.length < 3) return false
+      const heading = document.querySelector('h1')
+      return Boolean(heading && heading.textContent && heading.textContent.trim().length > 1)
+    },
+    { timeout: NAV_TIMEOUT_MS },
+  )
+}
+
 async function prerenderRoute(browser, routePath) {
   const page = await browser.newPage()
   try {
@@ -53,12 +67,15 @@ async function prerenderRoute(browser, routePath) {
       waitUntil: 'networkidle0',
       timeout: NAV_TIMEOUT_MS,
     })
-    // Небольшая доп. пауза: networkidle0 гарантирует отсутствие сетевых
-    // запросов, но не гарантирует, что React успел применить последний
-    // setState (например, наш useSiteMeta или анимации слайдера).
+    await waitForRenderedContent(page)
+    // Небольшая доп. пауза: useSiteMeta / JSON-LD после последнего setState.
     await new Promise((resolve) => setTimeout(resolve, EXTRA_WAIT_MS))
 
     const html = await page.content()
+    if (!html.includes('<h1') || !/<title>[^<]{3,}<\/title>/i.test(html)) {
+      throw new Error('В HTML нет осмысленного <title>/<h1> — страница не дорисовалась')
+    }
+
     const outFile = outFileFor(routePath)
     await fs.mkdir(path.dirname(outFile), { recursive: true })
     await fs.writeFile(outFile, html, 'utf-8')
@@ -79,8 +96,7 @@ async function main() {
   const routes = await fetchRoutes(BASE_URL)
   console.log(`Маршрутов найдено: ${routes.length}`)
   if (!routes.length) {
-    console.warn('Нечего пререндерить — sitemap.xml пуст.')
-    return
+    throw new Error('Нечего пререндерить — sitemap.xml пуст.')
   }
 
   await fs.mkdir(OUT_DIR, { recursive: true })
@@ -107,7 +123,7 @@ async function main() {
   await browser.close()
 
   console.log(`Готово: ${okCount} успешно, ${failCount} с ошибкой.`)
-  if (failCount > 0 && okCount === 0) {
+  if (failCount > 0) {
     process.exitCode = 1
   }
 }

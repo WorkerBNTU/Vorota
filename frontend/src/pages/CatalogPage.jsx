@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+﻿import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { api } from '../api'
 import MarkdownContent from '../components/MarkdownContent'
@@ -9,6 +9,7 @@ import TestimonialGrid from '../components/TestimonialGrid'
 import { useLeadModal } from '../components/LeadModal'
 import { useSiteData } from '../context/SiteDataContext'
 import useSiteMeta from '../hooks/useSiteMeta'
+import { catalogPageSeoDescription, catalogPageSeoTitle } from '../utils/seoMeta'
 import { buildBreadcrumbSchema, buildProductSchema, buildServiceSchema } from '../utils/structuredData'
 import { parseFeedItems, parseTestimonials } from '../utils/feedContent'
 import { attachAvatars, attachFeedImages, groupPageMedia } from '../utils/pageMedia'
@@ -51,8 +52,8 @@ export default function CatalogPage() {
   }, [path])
 
   useSiteMeta({
-    title: error ? 'Страница не найдена' : page ? (page.meta_title || page.title) : undefined,
-    description: page ? (page.meta_description || page.excerpt) : undefined,
+    title: error ? 'Страница не найдена' : page ? catalogPageSeoTitle(page) : undefined,
+    description: page ? catalogPageSeoDescription(page) : undefined,
     image: page?.image_url,
     path: page ? `/catalog/${page.slug}` : undefined,
     noindex: error,
@@ -104,8 +105,8 @@ export default function CatalogPage() {
 
   return (
     <>
-      <JsonLd data={buildBreadcrumbSchema(page.breadcrumbs, page.title)} />
-      <JsonLd data={buildProductSchema(page)} />
+      <JsonLd data={buildBreadcrumbSchema(page.breadcrumbs, page.title, settings)} />
+      <JsonLd data={buildProductSchema(page, settings)} />
       <JsonLd data={buildServiceSchema(page, settings)} />
 
       <section className="page-hero catalog-hero">
