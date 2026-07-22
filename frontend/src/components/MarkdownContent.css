@@ -1,0 +1,80 @@
+.markdown-content {
+  line-height: 1.7;
+  color: var(--color-text, #333);
+}
+
+.markdown-content h2,
+.markdown-content h3,
+.markdown-content h4,
+.markdown-content h5,
+.markdown-content h6 {
+  margin: 1.5em 0 0.75em;
+  color: var(--color-heading, #1a1a2e);
+}
+
+.markdown-content h2.md-h1 {
+  font-size: 1.5rem;
+}
+
+.markdown-content h4 {
+  font-size: 1.05rem;
+}
+
+.markdown-content h5,
+.markdown-content h6 {
+  font-size: 1rem;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.markdown-content p {
+  margin-bottom: 1em;
+}
+
+.markdown-content ul {
+  margin: 0 0 1em 1.25em;
+  padding: 0;
+}
+
+.markdown-content li {
+  margin-bottom: 0.4em;
+}
+
+.markdown-content a {
+  color: var(--color-accent, #c9a227);
+  text-decoration: underline;
+}
+
+.markdown-content strong {
+  font-weight: 600;
+}
+
+.md-table-wrap {
+  overflow-x: auto;
+  margin: 0 0 1.25em;
+  -webkit-overflow-scrolling: touch;
+}
+
+.md-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.92rem;
+  line-height: 1.45;
+}
+
+.md-table th,
+.md-table td {
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  padding: 10px 12px;
+  text-align: left;
+  vertical-align: top;
+}
+
+.md-table th {
+  background: rgba(0, 0, 0, 0.04);
+  font-weight: 600;
+}
+
+.md-table tr:nth-child(even) td {
+  background: rgba(0, 0, 0, 0.015);
+}

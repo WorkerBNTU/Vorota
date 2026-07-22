@@ -1,0 +1,116 @@
+.md-editor {
+  border: 1.5px solid var(--color-border, #e5e5e5);
+  border-radius: var(--radius, 8px);
+  overflow: hidden;
+}
+
+.md-editor-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 8px 10px;
+  background: #f7f7f9;
+  border-bottom: 1.5px solid var(--color-border, #e5e5e5);
+}
+
+.md-editor-toolbar-actions,
+.md-editor-toolbar-modes {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.md-editor-btn,
+.md-editor-mode {
+  border: 1px solid var(--color-border, #d8d8d8);
+  background: #fff;
+  border-radius: 6px;
+  padding: 5px 10px;
+  font-size: 0.8rem;
+  cursor: pointer;
+  color: var(--color-text, #333);
+  line-height: 1.2;
+}
+
+.md-editor-btn:hover,
+.md-editor-mode:hover {
+  border-color: var(--color-accent, #c9a227);
+}
+
+.md-editor-mode.active,
+.md-editor-btn.active {
+  background: var(--color-accent, #c9a227);
+  border-color: var(--color-accent, #c9a227);
+  color: #fff;
+}
+
+.md-editor-btn {
+  min-width: 30px;
+  text-align: center;
+}
+
+.md-editor-sep {
+  width: 1px;
+  align-self: stretch;
+  background: var(--color-border, #d8d8d8);
+  margin: 0 2px;
+}
+
+.md-editor-panes {
+  display: flex;
+  align-items: stretch;
+}
+
+.md-editor-panes--split .md-editor-textarea,
+.md-editor-panes--split .md-editor-preview {
+  width: 50%;
+}
+
+.md-editor-panes--edit .md-editor-textarea,
+.md-editor-panes--preview .md-editor-preview {
+  width: 100%;
+}
+
+.md-editor-textarea {
+  border: none;
+  outline: none;
+  resize: vertical;
+  padding: 14px;
+  font-family: 'SFMono-Regular', Consolas, Menlo, monospace;
+  font-size: 0.85rem;
+  line-height: 1.6;
+  min-height: 260px;
+}
+
+.md-editor-panes--split .md-editor-textarea {
+  border-right: 1.5px solid var(--color-border, #e5e5e5);
+}
+
+.md-editor-preview {
+  padding: 16px 20px;
+  min-height: 260px;
+  overflow-y: auto;
+  background: #fff;
+}
+
+.md-editor-preview-empty {
+  color: var(--color-text-muted, #999);
+  font-size: 0.9rem;
+  font-style: italic;
+}
+
+@media (max-width: 720px) {
+  .md-editor-panes--split {
+    flex-direction: column;
+  }
+  .md-editor-panes--split .md-editor-textarea,
+  .md-editor-panes--split .md-editor-preview {
+    width: 100%;
+  }
+  .md-editor-panes--split .md-editor-textarea {
+    border-right: none;
+    border-bottom: 1.5px solid var(--color-border, #e5e5e5);
+  }
+}

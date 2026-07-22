@@ -1,0 +1,13 @@
+{
+  "name": "vorota-prerender",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Обходит сайт headless-браузером и сохраняет статичные HTML-снапшоты для поисковых роботов (dynamic rendering). Не часть основного фронтенд-приложения — отдельный служебный инструмент, запускается по требованию/по расписанию.",
+  "scripts": {
+    "prerender": "node prerender.mjs"
+  },
+  "dependencies": {
+    "puppeteer": "^25.3.0"
+  }
+}

@@ -1,0 +1,56 @@
+﻿# Dependencies
+node_modules/
+frontend/node_modules/
+frontend/prerender/node_modules/
+backend/venv/
+.venv/
+venv/
+
+# Environment / secrets — никогда не коммитить
+.env
+.env.*
+!.env.example
+!.env.*.example
+
+# Python
+*.pyc
+__pycache__/
+*.pyo
+*.pyd
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+.tox/
+
+# Django
+db.sqlite3
+*.sqlite3
+backend/media/
+backend/staticfiles/
+
+# Локальный архив исходников для миграции (не используется сайтом в runtime)
+images/
+
+# Frontend build
+frontend/dist/
+frontend/node_modules/.vite/
+
+# OS / editor
+.DS_Store
+Thumbs.db
+*.log
+.idea/
+.vscode/
+*.swp
+*~
+
+# Migration snapshots (one-time import artifacts)
+menu.json
+content.json
+index_live.html
+image_manifest_*.json
+slug_to_local_image.json
+IMAGES_README.md

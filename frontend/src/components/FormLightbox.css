@@ -1,0 +1,138 @@
+﻿.form-lightbox {
+  position: fixed;
+  inset: 0;
+  z-index: 1200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  pointer-events: none;
+}
+
+.form-lightbox--modal {
+  pointer-events: auto;
+}
+
+.form-lightbox-backdrop {
+  position: absolute;
+  inset: 0;
+  border: 0;
+  padding: 0;
+  background: rgba(26, 35, 50, 0.72);
+  cursor: pointer;
+}
+
+.form-lightbox-card {
+  position: relative;
+  z-index: 1;
+  pointer-events: auto;
+  background: #fff;
+  border-radius: var(--radius-lg, 12px);
+  padding: 28px 28px 24px;
+  max-width: 420px;
+  width: 100%;
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.2);
+  animation: formLightboxIn 0.2s ease-out;
+}
+
+.form-lightbox-card--success {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  max-width: 380px;
+  padding: 22px 24px;
+}
+
+.form-lightbox-card h3 {
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  margin: 0 0 8px;
+}
+
+.form-lightbox-lead {
+  margin: 0 0 18px;
+  color: var(--color-text-muted);
+  font-size: 0.92rem;
+  line-height: 1.45;
+}
+
+.form-lightbox-card--success p {
+  margin: 0;
+  font-size: 0.98rem;
+  line-height: 1.45;
+  color: var(--color-text, #333);
+}
+
+.form-lightbox-icon {
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--color-accent) 18%, #fff);
+  color: var(--color-accent);
+  display: grid;
+  place-items: center;
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
+.form-lightbox-close {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 36px;
+  height: 36px;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--color-text-muted);
+  font-size: 1.5rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.form-lightbox-close:hover {
+  background: var(--color-bg);
+}
+
+.form-lightbox-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: flex-end;
+  margin-top: 8px;
+}
+
+.form-lightbox--toast {
+  background: rgba(26, 35, 50, 0.35);
+  transition: opacity 2s ease;
+}
+
+.form-lightbox--toast.is-in {
+  opacity: 1;
+}
+
+.form-lightbox--toast.is-out {
+  opacity: 0;
+}
+
+@keyframes formLightboxIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .form-lightbox-card {
+    animation: none;
+  }
+
+  .form-lightbox--toast {
+    transition: opacity 0.4s ease;
+  }
+}

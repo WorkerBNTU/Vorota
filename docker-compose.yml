@@ -1,0 +1,92 @@
+﻿services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: ${DB_NAME:-vorota}
+      POSTGRES_USER: ${DB_USER:-vorota}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-vorota}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-vorota}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  backend:
+    build: ./backend
+    environment:
+      DEBUG: ${DEBUG:-False}
+      DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY}
+      DB_ENGINE: postgresql
+      DB_NAME: ${DB_NAME:-vorota}
+      DB_USER: ${DB_USER:-vorota}
+      DB_PASSWORD: ${DB_PASSWORD:-vorota}
+      DB_HOST: db
+      DB_PORT: 5432
+      REDIS_URL: redis://redis:6379/0
+      TRUST_PROXY_HEADERS: "True"
+      SITE_URL: ${SITE_URL:-https://vorota-rb.by}
+      # "frontend" — сюда обращается сервис prerender (обходит сайт через
+      # внутреннее имя frontend в docker-сети), запросы к /api/ идут через
+      # nginx с этим же Host-заголовком.
+      ALLOWED_HOSTS: ${ALLOWED_HOSTS:-localhost,127.0.0.1,backend,frontend}
+      CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-http://localhost}
+      CSRF_TRUSTED_ORIGINS: ${CSRF_TRUSTED_ORIGINS:-http://localhost}
+      TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN:-}
+      TELEGRAM_CHAT_ID: ${TELEGRAM_CHAT_ID:-}
+      ADMIN_USERNAME: ${ADMIN_USERNAME:-admin}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD}
+    volumes:
+      - media_data:/app/media
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    ports:
+      # Весь реальный трафик /api/ уже идёт через nginx контейнера frontend
+      # (см. frontend/nginx.conf) — публикация 8000 наружу нужна только для
+      # локальной разработки. На боевом сервере рекомендуется заменить на
+      # "127.0.0.1:8000:8000" или убрать вовсе (см. README → «Требования
+      # к серверу»).
+      - "8000:8000"
+
+  frontend:
+    build: ./frontend
+    ports:
+      - "80:80"
+    volumes:
+      - prerendered_data:/usr/share/nginx/html/_prerendered
+    depends_on:
+      - backend
+
+  # Генерирует статические HTML-снапшоты страниц для поисковых роботов
+  # (см. frontend/prerender/ и nginx.conf). Не запускается автоматически —
+  # только по требованию:
+  #   docker compose run --rm prerender
+  # Повторяйте после существенных правок контента (см. README.md).
+  prerender:
+    build: ./frontend/prerender
+    profiles: ["prerender"]
+    environment:
+      BASE_URL: http://frontend
+      OUT_DIR: /output
+    volumes:
+      - prerendered_data:/output
+    depends_on:
+      - frontend
+      - backend
+
+volumes:
+  postgres_data:
+  media_data:
+  prerendered_data:

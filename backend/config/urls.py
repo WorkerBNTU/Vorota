@@ -1,0 +1,19 @@
+from django.conf import settings
+from django.conf.urls.static import static
+from django.contrib import admin
+from django.urls import include, path
+
+from api.views import RobotsView, SitemapView
+
+urlpatterns = [
+    path('api/', include('api.urls')),
+    # На корне домена, а не под /api/ — так их ищут поисковые роботы.
+    path('sitemap.xml', SitemapView.as_view(), name='sitemap'),
+    path('robots.txt', RobotsView.as_view(), name='robots'),
+]
+
+if settings.DEBUG or settings.ENABLE_DJANGO_ADMIN:
+    urlpatterns.insert(0, path('django-admin/', admin.site.urls))
+
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

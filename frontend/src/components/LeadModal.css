@@ -1,0 +1,56 @@
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(26, 35, 50, 0.72);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 16px;
+  /* Без backdrop-filter: размытие всего viewport на каждом кадре — частая
+     причина «подвисания» модалки, особенно на Windows и с длинной страницей. */
+}
+.modal-content {
+  background: #fff;
+  border-radius: var(--radius-lg);
+  padding: 40px;
+  max-width: 520px;
+  width: 100%;
+  position: relative;
+  animation: modalPop 0.16s ease-out;
+  max-height: min(92vh, 760px);
+  overflow-y: auto;
+}
+.modal-content h2 {
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  margin-bottom: 8px;
+}
+.modal-subtitle {
+  color: var(--color-text-muted);
+  margin-bottom: 24px;
+}
+.modal-close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  font-size: 1.5rem;
+  color: var(--color-text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background var(--transition);
+}
+.modal-close:hover { background: var(--color-bg); }
+
+@keyframes modalPop {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .modal-content { animation: none; }
+}
