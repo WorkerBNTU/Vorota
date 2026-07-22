@@ -80,7 +80,9 @@ cd frontend && npm install && npm run dev
 
 ### Безопасность
 - Rate limiting POST-запросов через Redis (5/мин с IP)
-- Honeypot + капча только при повторной отправке
+- Honeypot + простая арифметическая капча со **второй** заявки в сессии (бот-UA — сразу).
+  На проде планируется замена на **Cloudflare Turnstile** (или hCaptcha / reCAPTCHA) —
+  текущая схема не рассчитана на серьёзный спам.
 - В production обязательны `DJANGO_SECRET_KEY` и `ADMIN_PASSWORD`
 - Django-admin отключена по умолчанию (`ENABLE_DJANGO_ADMIN=False`)
 - IP берётся из `X-Real-IP` только при `TRUST_PROXY_HEADERS=True`

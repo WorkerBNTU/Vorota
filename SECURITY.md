@@ -16,3 +16,5 @@ We aim to respond within a few business days. Please give us reasonable time to 
 
 - Production secrets (`.env`, Telegram tokens, admin passwords) must never be committed.
 - Media uploads and lead PII are handled on the server; treat dumps/`backups/` as sensitive.
+- Lead forms currently use a honeypot + simple math captcha (often only from the 2nd submit).
+  For production traffic, plan to replace this with **Cloudflare Turnstile** (or hCaptcha / reCAPTCHA).

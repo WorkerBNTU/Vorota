@@ -190,6 +190,8 @@ Windows без Docker: `python manage.py export_site_content` / `import_site_con
 - [ ] HTTPS на внешнем прокси; порт 8000 только localhost
 - [ ] **Обязательно:** `docker compose --profile prerender run --rm prerender` (+ желательно cron)
 - [ ] Проверить: `curl -A Googlebot https://…/` не 404; заявка → Telegram; картинки `/media/…`
+- [ ] *(после запуска / при спаме)* заменить арифметическую капчу на **Turnstile** или аналог
+      (см. «Безопасность» ниже)
 
 ## Инциденты
 
@@ -219,3 +221,6 @@ Windows без Docker: `python manage.py export_site_content` / `import_site_con
 - [ ] HTTPS на внешнем прокси, `SITE_URL` с `https://`
 - [ ] Файрвол: 22/80/443
 - [ ] Бэкапы БД + media проверены восстановлением хотя бы раз
+- [ ] Антиспам заявок: сейчас honeypot + арифметика со 2-й заявки — **на проде
+      заменить на Cloudflare Turnstile** (или hCaptcha / reCAPTCHA), когда пойдёт
+      трафик или спам. Первая заявка в сессии сейчас без капчи намеренно (UX).
