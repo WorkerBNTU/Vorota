@@ -74,6 +74,8 @@ docker compose --profile prerender run --rm prerender
 | `TELEGRAM_*` | можно пусто | для уведомлений о лидах |
 | `DB_ENGINE=postgresql` | нет (SQLite) | да, в compose |
 | `ENABLE_API_DOCS` | не нужно (DEBUG) | `True` только если нужен Swagger на проде |
+| `SENTRY_DSN` | можно пусто | DSN проекта Django в Sentry |
+| `VITE_SENTRY_DSN` | можно пусто | DSN browser-проекта (сборка frontend) |
 
 Полный список — в корневом `.env.example` и README.
 
@@ -135,6 +137,7 @@ Windows без Docker: скопируйте `backend/db.sqlite3` и папку `
 
 - [ ] Скопировать `.env.example` → `.env`, задать `DJANGO_SECRET_KEY`, `ADMIN_PASSWORD`, `SITE_URL=https://…`, `DEBUG=False`
 - [ ] `TELEGRAM_*`, `REDIS_URL`, `TRUST_PROXY_HEADERS=True`, `DB_ENGINE=postgresql` (как в compose)
+- [ ] `SENTRY_DSN` (backend) и при необходимости `VITE_SENTRY_DSN` (сборка фронта)
 - [ ] `docker compose up --build -d`
 - [ ] `docker compose exec backend python manage.py migrate`
 - [ ] Залить media+контент: `bash scripts/import_content.sh …` **или** первичная загрузка через админку после `seed_data`
@@ -148,11 +151,20 @@ Windows без Docker: скопируйте `backend/db.sqlite3` и папку `
 | Симптом | Что проверить |
 |---------|----------------|
 | 403 CSRF при логине в `/admin` | `CSRF_TRUSTED_ORIGINS`, cookie SameSite, фронт и API на ожидаемых host/port |
-| Заявки не в Telegram | `TELEGRAM_BOT_TOKEN` / `TELEGRAM_CHAT_ID`, логи backend, что токен/чат живы |
+| Заявки не в Telegram | `TELEGRAM_BOT_TOKEN` / `TELEGRAM_CHAT_ID`, логи backend, Sentry (tag `subsystem=telegram`) |
 | 429 на формах | Redis доступен; не занижен ли `RATE_LIMIT_*`; не режут ли всех одним IP без `TRUST_PROXY_HEADERS` |
 | Пустые картинки на проде | volume `media_data`, права, nginx `/media/` |
 | Боты видят пустой SPA | давно ли гоняли `prerender`; есть ли файлы в `prerendered_data` |
 | Админка «не пускает» | пользователь `is_staff`, `create_admin`, не перепутан ли пароль из `.env` |
+
+## Observability (Sentry)
+
+Опционально. Без DSN ничего не отправляется.
+
+1. Создайте проект(ы) на [sentry.io](https://sentry.io) (Django + при желании Browser/React).
+2. В `.env`: `SENTRY_DSN=…`, на проде `SENTRY_ENVIRONMENT=production`.
+3. Для фронта при сборке: `VITE_SENTRY_DSN=…` (в Docker — build-arg / env на этапе `npm run build`).
+4. Сбои Telegram при заявках уходят в Sentry с тегом `subsystem=telegram`.
 
 ## Безопасность (чек-лист прод)
 

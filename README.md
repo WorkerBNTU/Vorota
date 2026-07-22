@@ -385,6 +385,10 @@ Vorota/
 | `TRUST_PROXY_HEADERS` | Доверять `X-Real-IP` от nginx (`True` в prod) |
 | `ENABLE_DJANGO_ADMIN` | Включить `/django-admin/` (по умолчанию `False`) |
 | `ENABLE_API_DOCS` | Swagger/ReDoc на проде (по умолчанию `False`; в DEBUG всегда) |
+| `SENTRY_DSN` | DSN Sentry для Django (пусто = выключено) |
+| `SENTRY_ENVIRONMENT` | Окружение в Sentry (`development` / `production`) |
+| `SENTRY_TRACES_SAMPLE_RATE` | Доля performance-транзакций (по умолчанию `0.1`) |
+| `VITE_SENTRY_DSN` | DSN Sentry для React (сборка Vite; пусто = выключено) |
 | `RATE_LIMIT_REQUESTS` | Лимит POST-запросов с IP (по умолчанию 5) |
 | `RATE_LIMIT_WINDOW` | Окно лимита в секундах (60) |
 

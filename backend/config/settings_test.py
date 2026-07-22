@@ -28,4 +28,7 @@ PASSWORD_HASHERS = [
     'django.contrib.auth.hashers.MD5PasswordHasher',
 ]
 
+# Тесты никогда не шлют события в Sentry
+SENTRY_DSN = ''
+
 MIDDLEWARE = [m for m in MIDDLEWARE if 'whitenoise' not in m.lower()]  # noqa: F405

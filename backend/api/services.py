@@ -1,4 +1,4 @@
-import logging
+﻿import logging
 import random
 import threading
 
@@ -116,6 +116,15 @@ def send_telegram_notification(lead_id):
         return True
     except requests.RequestException as exc:
         logger.error('Failed to send Telegram notification: %s', exc)
+        try:
+            import sentry_sdk
+
+            with sentry_sdk.push_scope() as scope:
+                scope.set_tag('subsystem', 'telegram')
+                scope.set_context('lead', {'id': lead_id})
+                sentry_sdk.capture_exception(exc)
+        except Exception:
+            pass
         return False
 
 
