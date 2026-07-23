@@ -38,9 +38,11 @@ def test_logo_url_uses_site_url_not_request_host(rf):
         save=True,
     )
 
-    # Host как у prerender — раньше build_absolute_uri давал http://frontend/...
+    # Host как у prerender-контейнера. FileField logo write_only — иначе DRF
+    # зовёт build_absolute_uri → DisallowedHost, если frontend нет в ALLOWED_HOSTS.
     request = rf.get('/', HTTP_HOST='frontend')
     data = SiteSettingsSerializer(obj, context={'request': request}).data
     logo = data['logo_url']
     assert logo.startswith('https://vorota-rb.by/media/')
     assert 'frontend' not in logo
+    assert 'logo' not in data  # write_only

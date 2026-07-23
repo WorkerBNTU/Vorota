@@ -50,6 +50,9 @@ class SiteSettingsSerializer(serializers.ModelSerializer):
             'consent_checkbox_label',
             'site_url',
         ]
+        # Не отдаём FileField в JSON: DRF делает build_absolute_uri(Host) и
+        # ломает prerender/тест на Host=frontend. Читают logo_url (SITE_URL).
+        extra_kwargs = {'logo': {'write_only': True}}
 
     def get_logo_url(self, obj):
         return media_field_url(obj.logo) if obj.logo else None
@@ -96,6 +99,7 @@ class HeroSlideSerializer(serializers.ModelSerializer):
     class Meta:
         model = HeroSlide
         fields = ['id', 'title', 'image', 'image_url', 'order', 'is_active']
+        extra_kwargs = {'image': {'write_only': True}}
 
     def get_image_url(self, obj):
         return media_field_url(obj.image) if obj.image else None
@@ -112,6 +116,7 @@ class ServiceSerializer(serializers.ModelSerializer):
             'options', 'options_list', 'image', 'image_url', 'icon', 'order',
             'is_active', 'show_on_home',
         ]
+        extra_kwargs = {'image': {'write_only': True}}
 
     def get_image_url(self, obj):
         return media_field_url(obj.image) if obj.image else None
@@ -128,6 +133,7 @@ class AdvantageSerializer(serializers.ModelSerializer):
     class Meta:
         model = Advantage
         fields = ['id', 'title', 'description', 'icon', 'image', 'image_url', 'order']
+        extra_kwargs = {'image': {'write_only': True}}
 
     def get_image_url(self, obj):
         return _image_url(self.context.get('request'), obj)
@@ -151,6 +157,11 @@ class PortfolioItemSerializer(serializers.ModelSerializer):
             'image_before', 'image_before_url', 'image_after', 'image_after_url',
             'order', 'is_active', 'created_at',
         ]
+        extra_kwargs = {
+            'image': {'write_only': True},
+            'image_before': {'write_only': True},
+            'image_after': {'write_only': True},
+        }
 
     def _abs_url(self, obj, field_name):
         image = getattr(obj, field_name, None)
@@ -326,6 +337,7 @@ class ContentPageImageAdminSerializer(AdminFormSerializerMixin, serializers.Mode
     class Meta:
         model = ContentPageImage
         fields = ['id', 'page', 'image', 'image_url', 'external_image_url', 'caption', 'order', 'role']
+        extra_kwargs = {'image': {'write_only': True}}
 
     def get_image_url(self, obj):
         return _image_url(self.context.get('request'), obj)
@@ -443,6 +455,7 @@ class ContentPageAdminSerializer(AdminFormSerializerMixin, serializers.ModelSeri
             'availability', 'image', 'image_url', 'external_image_url',
             'show_in_menu', 'order', 'is_active', 'meta_title', 'meta_description',
         ]
+        extra_kwargs = {'image': {'write_only': True}}
 
     def get_image_url(self, obj):
         return _image_url(self.context.get('request'), obj)
