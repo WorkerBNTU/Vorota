@@ -53,6 +53,7 @@
       ENABLE_API_DOCS: ${ENABLE_API_DOCS:-False}
       RATE_LIMIT_REQUESTS: ${RATE_LIMIT_REQUESTS:-5}
       RATE_LIMIT_WINDOW: ${RATE_LIMIT_WINDOW:-60}
+      RATE_LIMIT_FAIL_CLOSED: ${RATE_LIMIT_FAIL_CLOSED:-True}
       SECURE_SSL_REDIRECT: ${SECURE_SSL_REDIRECT:-False}
       SECURE_HSTS_SECONDS: ${SECURE_HSTS_SECONDS:-0}
     volumes:
@@ -85,8 +86,9 @@
   # Генерирует статические HTML-снапшоты страниц для поисковых роботов
   # (см. frontend/prerender/ и nginx.conf). Не запускается автоматически —
   # только по требованию:
-  #   docker compose run --rm prerender
+  #   docker compose --profile prerender run --rm prerender
   # Повторяйте после существенных правок контента (см. README.md).
+  # Снапшоты: media URL из API идут от SITE_URL; устаревшие slug чистятся (PURGE).
   prerender:
     build: ./frontend/prerender
     profiles: ["prerender"]

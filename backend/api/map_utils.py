@@ -29,7 +29,7 @@ def is_embeddable_map_url(url):
         parsed = urlparse(str(url).strip())
     except ValueError:
         return False
-    if parsed.scheme not in ('https', 'http'):
+    if parsed.scheme != 'https':
         return False
     host = (parsed.hostname or '').lower()
     if host not in _EMBED_HOSTS:

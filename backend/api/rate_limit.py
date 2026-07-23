@@ -1,4 +1,4 @@
-import logging
+﻿import logging
 import time
 from collections import defaultdict
 from threading import Lock
@@ -39,16 +39,20 @@ class RedisRateLimitStore:
 
 
 class FallbackRateLimitStore:
-    """Redis primary; при сбое Redis — in-memory (fail-open по доступности API)."""
+    """Redis primary; при сбое — memory (dev) или deny (prod fail-closed)."""
 
-    def __init__(self, primary, fallback: MemoryRateLimitStore):
+    def __init__(self, primary, fallback: MemoryRateLimitStore | None, *, fail_closed: bool):
         self.primary = primary
         self.fallback = fallback
+        self.fail_closed = fail_closed
 
     def is_allowed(self, key: str, limit: int, window: int) -> bool:
         try:
             return self.primary.is_allowed(key, limit, window)
         except Exception:
+            if self.fail_closed:
+                logger.error('Redis rate-limit unavailable — fail-closed (deny)', exc_info=True)
+                return False
             logger.warning('Redis rate-limit unavailable, falling back to memory', exc_info=True)
             return self.fallback.is_allowed(key, limit, window)
 
@@ -62,9 +66,14 @@ def get_rate_limit_store():
         return _store
     memory = MemoryRateLimitStore()
     redis_url = getattr(settings, 'REDIS_URL', '')
+    fail_closed = bool(getattr(settings, 'RATE_LIMIT_FAIL_CLOSED', False))
     if redis_url:
         try:
-            _store = FallbackRateLimitStore(RedisRateLimitStore(redis_url), memory)
+            _store = FallbackRateLimitStore(
+                RedisRateLimitStore(redis_url),
+                None if fail_closed else memory,
+                fail_closed=fail_closed,
+            )
             return _store
         except Exception:
             logger.warning('Redis rate-limit init failed, using memory only', exc_info=True)

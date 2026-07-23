@@ -211,7 +211,7 @@ Windows без Docker: `python manage.py export_site_content` / `import_site_con
 | Заявки не в Telegram | `TELEGRAM_BOT_TOKEN` / `TELEGRAM_CHAT_ID`, логи backend, Sentry (tag `subsystem=telegram`) |
 | 429 на формах | Redis доступен; не занижен ли `RATE_LIMIT_*`; не режут ли всех одним IP без `TRUST_PROXY_HEADERS` |
 | Пустые картинки на проде | volume `media_data`, права, nginx `/media/` |
-| Боты видят пустой SPA | давно ли гоняли `prerender`; volume `prerendered_data`; exit code cron; `SITE_URL`/`ALLOWED_HOSTS` для `frontend` |
+| Боты видят пустой SPA / битые og:image | prerender + cron; в логе не должно быть FAIL; `SITE_URL` не `http://frontend`; volume `prerendered_data` |
 | Админка «не пускает» | `create_admin` / `create_manager`, группы, не перепутан ли пароль из `.env` |
 | После рестарта Docker слетели тексты сайта | `seed_data` не затирает заполненные поля; SEO — `seed_data --refresh-seo`; полный сброс — `--force-settings` |
 

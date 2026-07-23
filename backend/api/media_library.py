@@ -12,11 +12,13 @@ from datetime import datetime, timezone as dt_timezone
 
 from django.conf import settings
 
+from .public_urls import public_absolute_url
+
 IMAGE_EXTENSIONS = {'.jpg', '.jpeg', '.png', '.webp', '.gif'}
 
 
-def list_media_images(request):
-    """Список всех картинок в MEDIA_ROOT, новые сверху."""
+def list_media_images(_request=None):
+    """Список всех картинок в MEDIA_ROOT, новые сверху. URL от SITE_URL."""
     media_root = str(settings.MEDIA_ROOT)
     items = []
     if os.path.isdir(media_root):
@@ -31,9 +33,10 @@ def list_media_images(request):
                 except OSError:
                     continue
                 rel_path = os.path.relpath(full_path, media_root).replace(os.sep, '/')
+                media_path = settings.MEDIA_URL + rel_path
                 items.append({
                     'path': rel_path,
-                    'url': request.build_absolute_uri(settings.MEDIA_URL + rel_path),
+                    'url': public_absolute_url(media_path),
                     'size': stat.st_size,
                     'modified_at': datetime.fromtimestamp(stat.st_mtime, tz=dt_timezone.utc).isoformat(),
                 })

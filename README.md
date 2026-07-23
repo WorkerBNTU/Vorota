@@ -254,7 +254,10 @@ nginx) + опциональный `prerender` (Puppeteer/Chromium), которы
   ещё нет — бот получает **тот же SPA** (`index.html`), чтобы не отдавать
   «сайт мёртв» до первого прогона; Googlebot дорисует JS. Для гарантированно
   полного HTML без JS **первый prerender после деплоя обязателен** (+ cron).
-  Скрипт ждёт появления `<h1>` и title и падает с exit code 1 при любой ошибке маршрута.
+  Скрипт ждёт появления `<h1>` и title (`domcontentloaded`, не `networkidle0`),
+  удаляет снапшоты вне текущего sitemap (`PURGE`) и падает с exit code 1 при
+  ошибке маршрута. Картинки/og:image в HTML берутся из API с абсолютными URL
+  от `SITE_URL` (не `http://frontend`).
 
 ### Запуск
 

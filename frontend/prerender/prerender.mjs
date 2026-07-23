@@ -1,4 +1,4 @@
-// Обходит сайт headless-Chrome (Puppeteer), даёт React отрендериться и
+﻿// Обходит сайт headless-Chrome (Puppeteer), даёт React отрендериться и
 // сделать все API-запросы, и сохраняет итоговый HTML на диск. Эти снапшоты
 // отдаёт nginx поисковым роботам вместо пустого index.html (см. nginx.conf,
 // "dynamic rendering") — обычные посетители продолжают получать обычный SPA.
@@ -63,12 +63,13 @@ async function waitForRenderedContent(page) {
 async function prerenderRoute(browser, routePath) {
   const page = await browser.newPage()
   try {
+    // domcontentloaded: Метрика/GA держат сеть «живой» и ломают networkidle0.
+    // Контент ждём отдельно по #root + h1 + title.
     await page.goto(`${BASE_URL}${routePath}`, {
-      waitUntil: 'networkidle0',
+      waitUntil: 'domcontentloaded',
       timeout: NAV_TIMEOUT_MS,
     })
     await waitForRenderedContent(page)
-    // Небольшая доп. пауза: useSiteMeta / JSON-LD после последнего setState.
     await new Promise((resolve) => setTimeout(resolve, EXTRA_WAIT_MS))
 
     const html = await page.content()
@@ -86,6 +87,40 @@ async function prerenderRoute(browser, routePath) {
     return false
   } finally {
     await page.close()
+  }
+}
+
+/** Удаляет index.html вне текущего sitemap (удалённые страницы каталога). */
+async function removeOrphanSnapshots(routes) {
+  const keep = new Set(routes.map((r) => path.resolve(outFileFor(r))))
+  const orphans = []
+
+  async function walk(dir) {
+    let entries
+    try {
+      entries = await fs.readdir(dir, { withFileTypes: true })
+    } catch {
+      return
+    }
+    for (const entry of entries) {
+      const full = path.join(dir, entry.name)
+      if (entry.isDirectory()) {
+        await walk(full)
+        continue
+      }
+      if (entry.name === 'index.html' && !keep.has(path.resolve(full))) {
+        orphans.push(full)
+      }
+    }
+  }
+
+  await walk(OUT_DIR)
+  for (const file of orphans) {
+    await fs.unlink(file)
+    console.log(`PURGE ${path.relative(OUT_DIR, file)}`)
+  }
+  if (orphans.length) {
+    console.log(`Удалено устаревших снапшотов: ${orphans.length}`)
   }
 }
 
@@ -121,6 +156,10 @@ async function main() {
 
   await Promise.all(Array.from({ length: Math.min(CONCURRENCY, routes.length) }, worker))
   await browser.close()
+
+  // Orphans чистим даже при частичных fail — иначе удалённые slug живут вечно.
+  // Неудачные маршруты сохраняют прежний файл (мы его не трогали).
+  await removeOrphanSnapshots(routes)
 
   console.log(`Готово: ${okCount} успешно, ${failCount} с ошибкой.`)
   if (failCount > 0) {

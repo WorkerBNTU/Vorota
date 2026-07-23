@@ -26,8 +26,11 @@ export default function Analytics() {
   const gaInitialized = useRef(false)
   const ymFirstHitSent = useRef(false)
 
-  const ymId = settings?.yandex_metrika_id
-  const gaId = settings?.google_analytics_id
+  const ymId = /^\d{1,12}$/.test(String(settings?.yandex_metrika_id || '').trim())
+    ? String(settings.yandex_metrika_id).trim()
+    : null
+  const gaRaw = String(settings?.google_analytics_id || '').trim()
+  const gaId = /^G-[A-Z0-9]+$/i.test(gaRaw) ? `G-${gaRaw.slice(2).toUpperCase()}` : null
 
   useEffect(() => {
     if (!ymId || ymInitialized.current) return

@@ -4,7 +4,7 @@ import { useSiteData } from '../context/SiteDataContext'
 import { SITE_DEFAULTS } from '../constants/siteDefaults'
 import ContentImage from '../components/ContentImage'
 import useSiteMeta from '../hooks/useSiteMeta'
-import { isSafeMapEmbedUrl, telegramUrl } from '../utils/safeLinks'
+import { isSafeMapEmbedUrl, isSafeMapPageUrl, telegramUrl } from '../utils/safeLinks'
 import { catalogLink } from './CatalogPage'
 import './Contacts.css'
 
@@ -20,6 +20,7 @@ export default function Contacts() {
   const s = settings || {}
   const tg = telegramUrl(s.telegram)
   const mapEmbed = isSafeMapEmbedUrl(s.map_url) ? s.map_url : null
+  const mapPage = isSafeMapPageUrl(s.map_page_url) ? s.map_page_url : null
 
   const values = {
     phone: s.phone || SITE_DEFAULTS.phone,
@@ -111,9 +112,9 @@ export default function Contacts() {
                   sandbox="allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox"
                 />
               </div>
-              {s.map_page_url && (
+              {mapPage && (
                 <p className="map-external-link">
-                  <a href={s.map_page_url} target="_blank" rel="noopener noreferrer">
+                  <a href={mapPage} target="_blank" rel="noopener noreferrer">
                     Открыть карточку организации в Яндекс.Картах →
                   </a>
                 </p>

@@ -20,6 +20,7 @@ from .models import (
     SiteVisit,
     WorkStep,
 )
+from .public_urls import media_field_url, public_absolute_url
 from .services import captcha_required, mark_lead_submitted, verify_captcha
 
 
@@ -51,12 +52,7 @@ class SiteSettingsSerializer(serializers.ModelSerializer):
         ]
 
     def get_logo_url(self, obj):
-        if obj.logo:
-            request = self.context.get('request')
-            if request:
-                return request.build_absolute_uri(obj.logo.url)
-            return obj.logo.url
-        return None
+        return media_field_url(obj.logo) if obj.logo else None
 
     def get_map_url(self, obj):
         return resolve_map_embed_url(obj)
@@ -67,6 +63,22 @@ class SiteSettingsSerializer(serializers.ModelSerializer):
     def get_site_url(self, obj):
         from django.conf import settings as dj_settings
         return (getattr(dj_settings, 'SITE_URL', '') or '').rstrip('/')
+
+    def validate_yandex_metrika_id(self, value):
+        value = (value or '').strip()
+        if not value:
+            return ''
+        if not re.fullmatch(r'\d{1,12}', value):
+            raise serializers.ValidationError('ID Метрики — только цифры')
+        return value
+
+    def validate_google_analytics_id(self, value):
+        value = (value or '').strip()
+        if not value:
+            return ''
+        if not re.fullmatch(r'G-[A-Z0-9]+', value, re.IGNORECASE):
+            raise serializers.ValidationError('GA4 ID вида G-XXXXXXXX')
+        return f'G-{value[2:].upper()}'
 
     def validate_map_embed_url(self, value):
         if not value:
@@ -86,12 +98,7 @@ class HeroSlideSerializer(serializers.ModelSerializer):
         fields = ['id', 'title', 'image', 'image_url', 'order', 'is_active']
 
     def get_image_url(self, obj):
-        if obj.image:
-            request = self.context.get('request')
-            if request:
-                return request.build_absolute_uri(obj.image.url)
-            return obj.image.url
-        return None
+        return media_field_url(obj.image) if obj.image else None
 
 
 class ServiceSerializer(serializers.ModelSerializer):
@@ -107,12 +114,7 @@ class ServiceSerializer(serializers.ModelSerializer):
         ]
 
     def get_image_url(self, obj):
-        if obj.image:
-            request = self.context.get('request')
-            if request:
-                return request.build_absolute_uri(obj.image.url)
-            return obj.image.url
-        return None
+        return media_field_url(obj.image) if obj.image else None
 
     def get_options_list(self, obj):
         if not obj.options:
@@ -152,12 +154,7 @@ class PortfolioItemSerializer(serializers.ModelSerializer):
 
     def _abs_url(self, obj, field_name):
         image = getattr(obj, field_name, None)
-        if image:
-            request = self.context.get('request')
-            if request:
-                return request.build_absolute_uri(image.url)
-            return image.url
-        return None
+        return media_field_url(image) if image else None
 
     def get_image_url(self, obj):
         return self._abs_url(obj, 'image')
@@ -303,14 +300,13 @@ class SiteVisitSerializer(serializers.ModelSerializer):
         fields = ['id', 'ip_address', 'visit_date', 'visited_at', 'path', 'referer']
 
 
-def _image_url(request, obj, field='image', external_field='external_image_url'):
+def _image_url(_request, obj, field='image', external_field='external_image_url'):
+    # _request: раньше build_absolute_uri(Host); теперь SITE_URL (см. public_urls).
     image = getattr(obj, field, None)
     if image:
-        if request:
-            return request.build_absolute_uri(image.url)
-        return image.url
+        return media_field_url(image)
     external = getattr(obj, external_field, '') or ''
-    return external or None
+    return public_absolute_url(external) if external else None
 
 
 class ContentPageImageSerializer(serializers.ModelSerializer):

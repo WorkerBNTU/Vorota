@@ -200,6 +200,11 @@ TELEGRAM_CHAT_ID = os.getenv('TELEGRAM_CHAT_ID', '')
 RATE_LIMIT_REQUESTS = int(os.getenv('RATE_LIMIT_REQUESTS', '5'))
 RATE_LIMIT_WINDOW = int(os.getenv('RATE_LIMIT_WINDOW', '60'))
 REDIS_URL = os.getenv('REDIS_URL', '')
+# При сбое Redis: на проде deny (True), в DEBUG — memory fallback (False).
+_RATE_FAIL_DEFAULT = 'False' if DEBUG else 'True'
+RATE_LIMIT_FAIL_CLOSED = os.getenv('RATE_LIMIT_FAIL_CLOSED', _RATE_FAIL_DEFAULT).lower() in (
+    'true', '1', 'yes',
+)
 TRUST_PROXY_HEADERS = os.getenv('TRUST_PROXY_HEADERS', 'False').lower() in ('true', '1', 'yes')
 ENABLE_DJANGO_ADMIN = os.getenv('ENABLE_DJANGO_ADMIN', 'False').lower() in ('true', '1', 'yes')
 

@@ -18,6 +18,7 @@ def test_rejects_non_widget_and_host_spoof():
     assert not is_embeddable_map_url(
         'https://evil.com/?next=https://yandex.ru/map-widget/v1/'
     )
+    assert not is_embeddable_map_url('http://yandex.ru/map-widget/v1/?ll=1%2C2')
     assert not is_embeddable_map_url('javascript:alert(1)')
     assert not is_embeddable_map_url('')
     assert not is_embeddable_map_url(None)
